@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>fari.sh</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>fari.sh</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-meta">#!/bin/bash
+</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="easy-pharo-iceberg-git-image-setup">Easy Pharo+Iceberg+Git image setup</h2>
+<p><em><strong>fari:</strong> To do, to make (eo) — Lighthouses (it)</em></p>
+<p><strong>Fari</strong> (re)downloads and prepares a <em>ready-to-hack</em> <a href="http://pharo.org">Pharo</a> image, so you
+can forget about the usual image setup dance: get image, run it, open
+workspace, juggle windows, copy-paste, do-it, save image under new name…</p>
+<pre><code class="lang-shell"><span class="hljs-meta">$</span><span class="bash"> git <span class="hljs-built_in">clone</span> git@github.com/<span class="hljs-variable">$user</span>/<span class="hljs-variable">$repo</span>.git</span>
+<span class="hljs-meta">$</span><span class="bash"> <span class="hljs-built_in">cd</span> <span class="hljs-variable">$repo</span></span>
+<span class="hljs-meta">$</span><span class="bash"> fari.sh</span>
+</code></pre>
+<p>The <a href="https://github.com/cdlm/fari.sh">Fari source</a> is available on Github, and is released under the
+<a href="http://opensource.org/licenses/MIT">MIT license</a>.</p>
+<p><strong>Configuration:</strong> To have code automatically loaded in the fresh image, add a
+<code>load.st</code> file containing the needed code snippet in your project, typically
+something like:</p>
+<pre><code class="lang-smalltalk"><span class="hljs-comment">"load.st"</span>
+<span class="hljs-type">Metacello</span> new baseline: <span class="hljs-string">'Foo'</span>;
+  repository: <span class="hljs-string">'gitlocal://./src'</span>;
+  load.
+</code></pre>
+<p>This will generate a <code>pharo-$githash.image</code> file. The git hash comes from the
+downloaded snapthot and identifies which sources file matches the image.</p>
+<p><strong>Named images:</strong> Instead of <code>load.st</code>, you can also use a named load file,
+e.g. <code>foo.load.st</code> file, resulting in a matching <code>foo-*.image</code>. Several named
+images can be generated, each with specific settings, by having several named
+load files. If present, the <code>load.st</code> file will still be loaded in all images,
+before the named load file; this is useful for sharing configuration in all
+named images.</p>
+<p><strong>Personal settings:</strong> any existing <code>local.st</code> or <code>$prefix.local.st</code> files
+will be also loaded; those are intended for loading personal tools and
+settings, and should thus be left out of version control.</p>
+<p>In the absence of a named load file, the name prefix defaults to <code>pharo</code>; to
+change it, set the <code>PHARO_PROJECT</code> environment variable; we recommend
+<a href="https://direnv.net">direnv</a> to make that setting persistent and project-specific.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Now let’s start. First &amp; foremost, we toggle <a href="http://redsymbol.net/articles/unofficial-bash-strict-mode/">bash strict
+mode</a>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">set</span> -euo pipefail
+IFS=$<span class="hljs-string">'\n\t'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <h2 id="the-image-re-build-process">The image (re)build process</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Download a fresh base image, then rebuild all specified project images.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_build_image {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Ensure environment variables have sensible values.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    : <span class="hljs-string">"<span class="hljs-variable">${PHARO_PROJECT:=pharo}</span>"</span>
+    : <span class="hljs-string">"<span class="hljs-variable">${PHARO:=./pharo-ui}</span>"</span>
+    : <span class="hljs-string">"<span class="hljs-variable">${PHARO_VERSION:=70}</span>"</span>
+    : <span class="hljs-string">"<span class="hljs-variable">${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}</span>"</span>}<span class="hljs-string">"
+
+    local fetched hash
+    local -a images=("</span><span class="hljs-variable">$@</span><span class="hljs-string">")
+
+</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>With no argument, we build one image per <code>*.load.st</code> script in the current
+directory, or default to <code>$PHARO_PROJECT</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; <span class="hljs-built_in">read</span> -ra images &lt; &lt;( ls ./*.load.st )
+    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( <span class="hljs-string">"<span class="hljs-variable">$PHARO_PROJECT</span>"</span> )
+    images=( <span class="hljs-string">"<span class="hljs-variable">${images[@]%.load.st}</span>"</span> )</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Get base image, extract build hash.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    fetched=<span class="hljs-string">"<span class="hljs-variable">$(pharo_fetch_image "${PHARO_FILES}/pharo.zip")</span>"</span>
+    <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${fetched##*-}</span>"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>We build all specified images first…</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
+        pharo_delete <span class="hljs-string">"<span class="hljs-variable">${project}</span>.tmp"</span>
+        pharo_prepare <span class="hljs-string">"<span class="hljs-variable">$fetched</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$project</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>.tmp"</span>
+    <span class="hljs-keyword">done</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>…and then back the old ones up, before moving the new ones in place.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
+        pharo_backup <span class="hljs-string">"<span class="hljs-variable">${project}</span>"</span>
+        pharo_rename <span class="hljs-string">"<span class="hljs-variable">${project}</span>.tmp"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>-<span class="hljs-variable">${hash}</span>"</span>
+    <span class="hljs-keyword">done</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <h2 id="subcommands">Subcommands</h2>
+<p>When the functions below handle images, changes, and source files, they do so
+based on their basename, or extensionless path.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p><strong>Fetch</strong> a zip archive containing image, changes, and sources files.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_fetch_image {
+    [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> url"</span>
+    <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> downloaded tmp</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Download &amp; unzip everything in a temporary directory.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    tmp=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>) <span class="hljs-comment">#TODO clean up automatically</span>
+    download_to <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> <span class="hljs-string">"<span class="hljs-variable">$url</span>"</span> <span class="hljs-comment">#TODO cache in a known place and continue?</span>
+    unzip -q <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> -d <span class="hljs-string">"<span class="hljs-variable">$tmp</span>"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>The filenames include the short hash of the commit they were generated
+from, which is not predictable from the URL. We find and check that the
+file does exist (<code>ls</code> will fail otherwise), then return its full path,
+minus extension.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    downloaded=<span class="hljs-string">"<span class="hljs-variable">$(ls "${tmp}"/*.image)</span>"</span>
+    downloaded=<span class="hljs-string">"<span class="hljs-variable">${downloaded%.image}</span>"</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$downloaded</span>"</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p><strong>Rename</strong> or copy an image+changes file pair. Will not overwrite existing
+files.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_rename {
+    [[ <span class="hljs-variable">$#</span> -ge 2 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> [--copy] original new"</span>
+    <span class="hljs-built_in">local</span> copy=<span class="hljs-string">'mv'</span>
+    [[ <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> = <span class="hljs-string">'--copy'</span> ]] &amp;&amp; { copy=<span class="hljs-string">'cp'</span>; <span class="hljs-built_in">shift</span>; }
+    <span class="hljs-built_in">local</span> original=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> new=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span>
+
+    [ -e <span class="hljs-string">"<span class="hljs-variable">${original}</span>.image"</span> ] || die <span class="hljs-string">"No original image: <span class="hljs-variable">${original}</span>.image"</span>
+    [ ! -e <span class="hljs-string">"<span class="hljs-variable">${new}</span>.image"</span> ] || die <span class="hljs-string">"Destination file already exists: <span class="hljs-variable">${new}</span>.image"</span>
+    [ ! -e <span class="hljs-string">"<span class="hljs-variable">${new}</span>.changes"</span> ] || die <span class="hljs-string">"Destination file already exists: <span class="hljs-variable">${new}</span>.changes"</span>
+
+    <span class="hljs-string">"<span class="hljs-variable">$copy</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${original}</span>.image"</span> <span class="hljs-string">"<span class="hljs-variable">${new}</span>.image"</span>
+    <span class="hljs-string">"<span class="hljs-variable">$copy</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${original}</span>.changes"</span> <span class="hljs-string">"<span class="hljs-variable">${new}</span>.changes"</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p><strong>Delete</strong> image+changes file pairs.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_delete {
+    [[ <span class="hljs-variable">$#</span> -ge 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> basename..."</span>
+
+    <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>; <span class="hljs-keyword">do</span>
+        rm -f <span class="hljs-string">"<span class="hljs-variable">${name}</span>.image"</span>
+        rm -f <span class="hljs-string">"<span class="hljs-variable">${name}</span>.changes"</span>
+    <span class="hljs-keyword">done</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p><strong>Backup</strong> an image+changes file pair. Backups have a <code>backup-YYYMMDD</code>
+timestamp appended to their original basename.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_backup {
+    [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> name"</span>
+    <span class="hljs-built_in">local</span> name=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> backup_stamp
+    backup_stamp=<span class="hljs-string">"backup-<span class="hljs-variable">$(date +%Y%m%d-%H%M)</span>"</span>
+
+    <span class="hljs-built_in">shopt</span> -s nullglob
+    <span class="hljs-keyword">for</span> image <span class="hljs-keyword">in</span> <span class="hljs-variable">${name}</span>-*.image; <span class="hljs-keyword">do</span> <span class="hljs-comment"># match any hash</span>
+        image=<span class="hljs-string">"<span class="hljs-variable">${image%.image}</span>"</span>
+        pharo_rename <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>.<span class="hljs-variable">${backup_stamp}</span>"</span>
+    <span class="hljs-keyword">done</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p><strong>Load</strong> project code by running any available load scripts pertaining to the
+<code>script</code> shortname, modifying the given <code>image</code> in place.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_load {
+    [[ <span class="hljs-variable">$#</span> -eq 2 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0] script image}</span>"</span>
+    <span class="hljs-built_in">local</span> script=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> image=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span>
+
+    <span class="hljs-keyword">for</span> script_file <span class="hljs-keyword">in</span> <span class="hljs-string">"load.st"</span> <span class="hljs-string">"<span class="hljs-variable">${script}</span>.load.st"</span> <span class="hljs-string">"local.st"</span> <span class="hljs-string">"<span class="hljs-variable">${script}</span>.local.st"</span>; <span class="hljs-keyword">do</span>
+        <span class="hljs-keyword">if</span> [[ -e <span class="hljs-string">"<span class="hljs-variable">$script_file</span>"</span> ]]; <span class="hljs-keyword">then</span>
+            <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>.image"</span> st --save --quit <span class="hljs-string">"<span class="hljs-variable">$script_file</span>"</span>
+        <span class="hljs-keyword">fi</span>
+    <span class="hljs-keyword">done</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p><strong>Prepare</strong> a <code>new</code> image, starting from the given <code>base</code>, loading project
+<code>script</code>s.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_prepare {
+    [[ <span class="hljs-variable">$#</span> -eq 3 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0] base script new}</span>"</span>
+    <span class="hljs-built_in">local</span> base=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> script=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span> new=<span class="hljs-string">"<span class="hljs-variable">$3</span>"</span>
+
+    pharo_rename --copy <span class="hljs-string">"<span class="hljs-variable">$base</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
+    cp -f <span class="hljs-string">"<span class="hljs-variable">${base}</span>.sources"</span> <span class="hljs-string">"<span class="hljs-variable">$(dirname "$new")</span>"</span>
+    pharo_load <span class="hljs-string">"<span class="hljs-variable">$script</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <h2 id="shell-utilities">Shell utilities</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Abort execution with an error message and non-zero status.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> die { <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 1&gt;&amp;2; <span class="hljs-built_in">exit</span> 1; }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Download a <code>url</code> to the given file. A convenience wrapper around <code>curl</code> or
+<code>wget</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> download_to {
+    [[ <span class="hljs-variable">$#</span> -eq 2 ]] || <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> filename url"</span>
+    <span class="hljs-built_in">local</span> dest=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> url=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span>
+
+    curl --silent --location --compressed --output <span class="hljs-string">"<span class="hljs-variable">$dest</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$url</span>"</span> <span class="hljs-comment">#TODO the same with wget</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <h2 id="launch-time-">Launch time!</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Only call the main function if this script was called as a command. This makes
+it possible to source this script as a library.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> [[ <span class="hljs-string">"<span class="hljs-variable">${BASH_SOURCE[0]}</span>"</span> == <span class="hljs-string">"<span class="hljs-variable">$0</span>"</span> ]]; <span class="hljs-keyword">then</span>
+    pharo_build_image <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
+<span class="hljs-keyword">fi</span></pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
