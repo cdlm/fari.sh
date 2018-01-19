@@ -1,6 +1,9 @@
 .phony: all
 
-all: docs/fari.html
+all: README.md docs/fari.html
+
+README.md: fari.sh
+	sed -n '/^\s*$$/q; /^#!/d; s/^#//p' < $< > $@
 
 docs/fari.html: fari.sh
 	git worktree prune

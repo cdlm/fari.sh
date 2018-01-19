@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-### Easy Pharo+Iceberg+Git image setup
+# # Fari
 #
 # _**fari:** To do, to make (eo) — Lighthouses (it)_
 #
-# **Fari** (re)downloads and prepares a _ready-to-hack_ [Pharo][] image, so you
-# can forget about the usual image setup dance: get image, run it, open
+# **Fari** downloads and prepares _fresh, ready-to-hack_ [Pharo][] images for
+# you, so you can forget about the usual setup dance: get image, run it, open
 # workspace, juggle windows, copy-paste, do-it, save image under new name…
 #
 # ```shell
@@ -14,8 +14,15 @@
 # $ fari.sh
 # ```
 #
+# **Install:** Drop or link
+# [`fari.sh`](https://raw.githubusercontent.com/cdlm/fari.sh/master/fari.sh) in
+# your `$PATH`.
+#
 # The [Fari source][github] is available on Github, and is released under the
-# [MIT license][mit].
+# [MIT license][mit]. See the [Docco][] generated docs for more information:
+# https://cdlm.github.io/fari.sh/fari.html
+#
+# * * *
 #
 # **Configuration:** To have code automatically loaded in the fresh image, add a
 # `load.st` file containing the needed code snippet in your project, typically
@@ -49,6 +56,7 @@
 # [github]: https://github.com/cdlm/fari.sh
 # [mit]: http://opensource.org/licenses/MIT
 # [pharo]: http://pharo.org
+# [docco]: http://ashkenas.com/docco/
 # [direnv]: https://direnv.net
 
 # Now let's start. First & foremost, we toggle [bash strict
