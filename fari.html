@@ -62,16 +62,15 @@ something like:</p>
 </code></pre>
 <p>This will generate a <code>pharo-$githash.image</code> file. The git hash comes from the
 downloaded snapthot and identifies which sources file matches the image.</p>
-<p><strong>Named images:</strong> Instead of <code>load.st</code>, you can also use a named load file,
-e.g. <code>foo.load.st</code> file, resulting in a matching <code>foo-*.image</code>. Several named
-images can be generated, each with specific settings, by having several named
-load files. If present, the <code>load.st</code> file will still be loaded in all images,
-before the named load file; this is useful for sharing configuration in all
-named images.</p>
-<p><strong>Personal settings:</strong> any existing <code>local.st</code> or <code>$prefix.local.st</code> files
-will be also loaded; those are intended for loading personal tools and
-settings, and should thus be left out of version control.</p>
-<p>In the absence of a named load file, the name prefix defaults to <code>pharo</code>; to
+<p><strong>Named images:</strong> Instead of <code>load.st</code>, you can also use a named load script,
+e.g. <code>foo.load.st</code>, resulting in a matching <code>foo-*.image</code>. Several named
+images can be generated, each with specific settings, by having as many named
+load scripts. If present, <code>load.st</code> is loaded before the named load script of
+each image; this is useful for sharing configuration in all named images.</p>
+<p><strong>Personal settings:</strong> any existing <code>local.st</code> or <code>foo.local.st</code> files get
+loaded after the load scripts; those are intended for loading personal tools
+and settings, and should thus be left out of version control.</p>
+<p>In the absence of a named load script, the name prefix defaults to <code>pharo</code>; to
 change it, set the <code>PHARO_PROJECT</code> environment variable; we recommend
 <a href="https://direnv.net">direnv</a> to make that setting persistent and project-specific.</p>
 
@@ -154,14 +153,13 @@ IFS=$<span class="hljs-string">'\n\t'</span></pre></div></div>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
-              <p>With no argument, we build one image per <code>*.load.st</code> script in the current
-directory, or default to <code>$PHARO_PROJECT</code>.</p>
+              <p>With no argument, we build one image per uniquely named load script in the
+current directory, or default to <code>$PHARO_PROJECT</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; <span class="hljs-built_in">read</span> -ra images &lt; &lt;( ls ./*.load.st )
-    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( <span class="hljs-string">"<span class="hljs-variable">$PHARO_PROJECT</span>"</span> )
-    images=( <span class="hljs-string">"<span class="hljs-variable">${images[@]%.load.st}</span>"</span> )</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( $(pharo_load_scripts) )
+    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( <span class="hljs-string">"<span class="hljs-variable">$PHARO_PROJECT</span>"</span> )</pre></div></div>
             
         </li>
         
@@ -240,6 +238,25 @@ based on their basename, or extensionless path.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
+              <p><strong>List</strong> basenames of load scripts found in the current directory.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_load_scripts {
+    find -E . -maxdepth 1 -regex <span class="hljs-string">'.*\.(load|local)\.st'</span> \
+        | sed -E <span class="hljs-string">'s/\.(load|local)\.st$//'</span> \
+        | uniq
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
               <p><strong>Fetch</strong> a zip archive containing image, changes, and sources files.</p>
 
             </div>
@@ -251,11 +268,11 @@ based on their basename, or extensionless path.</p>
         </li>
         
         
-        <li id="section-13">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <p>Download &amp; unzip everything in a temporary directory.</p>
 
@@ -268,11 +285,11 @@ based on their basename, or extensionless path.</p>
         </li>
         
         
-        <li id="section-14">
+        <li id="section-15">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>The filenames include the short hash of the commit they were generated
 from, which is not predictable from the URL. We find and check that the
@@ -289,11 +306,11 @@ minus extension.</p>
         </li>
         
         
-        <li id="section-15">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
+                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <p><strong>Rename</strong> or copy an image+changes file pair. Will not overwrite existing
 files.</p>
@@ -317,11 +334,11 @@ files.</p>
         </li>
         
         
-        <li id="section-16">
+        <li id="section-17">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
               <p><strong>Delete</strong> image+changes file pairs.</p>
 
@@ -339,11 +356,11 @@ files.</p>
         </li>
         
         
-        <li id="section-17">
+        <li id="section-18">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
               <p><strong>Backup</strong> an image+changes file pair. Backups have a <code>backup-YYYMMDD</code>
 timestamp appended to their original basename.</p>
@@ -365,11 +382,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-18">
+        <li id="section-19">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
               <p><strong>Load</strong> project code by running any available load scripts pertaining to the
 <code>script</code> shortname, modifying the given <code>image</code> in place.</p>
@@ -390,11 +407,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-19">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p><strong>Prepare</strong> a <code>new</code> image, starting from the given <code>base</code>, loading project
 <code>script</code>s.</p>
@@ -413,11 +430,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-20">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <h2 id="shell-utilities">Shell utilities</h2>
 
@@ -426,11 +443,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-21">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>Abort execution with an error message and non-zero status.</p>
 
@@ -441,11 +458,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <p>Download a <code>url</code> to the given file. A convenience wrapper around <code>curl</code> or
 <code>wget</code>.</p>
@@ -462,11 +479,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-23">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <h2 id="launch-time-">Launch time!</h2>
 
@@ -475,11 +492,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-24">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p>Only call the main function if this script was called as a command. This makes
 it possible to source this script as a library.</p>
