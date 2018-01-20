@@ -37,18 +37,17 @@
  This will generate a `pharo-$githash.image` file. The git hash comes from the
  downloaded snapthot and identifies which sources file matches the image.
 
- **Named images:** Instead of `load.st`, you can also use a named load file,
- e.g. `foo.load.st` file, resulting in a matching `foo-*.image`. Several named
- images can be generated, each with specific settings, by having several named
- load files. If present, the `load.st` file will still be loaded in all images,
- before the named load file; this is useful for sharing configuration in all
- named images.
+ **Named images:** Instead of `load.st`, you can also use a named load script,
+ e.g. `foo.load.st`, resulting in a matching `foo-*.image`. Several named
+ images can be generated, each with specific settings, by having as many named
+ load scripts. If present, `load.st` is loaded before the named load script of
+ each image; this is useful for sharing configuration in all named images.
 
- **Personal settings:** any existing `local.st` or `$prefix.local.st` files
- will be also loaded; those are intended for loading personal tools and
- settings, and should thus be left out of version control.
+ **Personal settings:** any existing `local.st` or `foo.local.st` files get
+ loaded after the load scripts; those are intended for loading personal tools
+ and settings, and should thus be left out of version control.
 
- In the absence of a named load file, the name prefix defaults to `pharo`; to
+ In the absence of a named load script, the name prefix defaults to `pharo`; to
  change it, set the `PHARO_PROJECT` environment variable; we recommend
  [direnv][] to make that setting persistent and project-specific.
 
