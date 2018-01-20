@@ -69,7 +69,7 @@ IFS=$'\n\t'
 function pharo_build_image {
     # Ensure environment variables have sensible values.
     : "${PHARO_PROJECT:=pharo}"
-    : "${PHARO:=./pharo-ui}"
+    : "${PHARO:=pharo-ui}"
     : "${PHARO_VERSION:=70}"
     : "${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}"}"
 
