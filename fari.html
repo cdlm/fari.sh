@@ -266,8 +266,9 @@ based on their basename, or extensionless path.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_load_scripts {
-    find -E . -maxdepth 1 -regex <span class="hljs-string">'.*\.(load|local)\.st'</span> \
-        | sed -E <span class="hljs-string">'s/\.(load|local)\.st$//'</span> \
+    <span class="hljs-built_in">local</span> regex=<span class="hljs-string">'\.(load|local)\.st$'</span>
+    find . -maxdepth 1 -<span class="hljs-built_in">type</span> f \
+        | sed -En <span class="hljs-string">"/<span class="hljs-variable">${regex}</span>/s/<span class="hljs-variable">${regex}</span>//p"</span> \
         | uniq
 }</pre></div></div>
             
