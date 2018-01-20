@@ -172,7 +172,7 @@ function pharo_backup {
 # **Load** project code by running any available load scripts pertaining to the
 # `script` shortname, modifying the given `image` in place.
 function pharo_load {
-    [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0] script image}"
+    [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} script image"
     local script="$1" image="$2"
 
     for script_file in "load.st" "${script}.load.st" "local.st" "${script}.local.st"; do
@@ -185,7 +185,7 @@ function pharo_load {
 # **Prepare** a `new` image, starting from the given `base`, loading project
 # `script`s.
 function pharo_prepare {
-    [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0] base script new}"
+    [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0]} base script new"
     local base="$1" script="$2" new="$3"
 
     pharo_rename --copy "$base" "$new"
