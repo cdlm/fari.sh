@@ -79,9 +79,8 @@ function pharo_build_image {
 
     # With no argument, we build one image per `*.load.st` script in the current
     # directory, or default to `$PHARO_PROJECT`.
-    [[ ${#images[@]} -eq 0 ]] && read -ra images < <( ls ./*.load.st )
+    [[ ${#images[@]} -eq 0 ]] && images=( $(pharo_load_scripts) )
     [[ ${#images[@]} -eq 0 ]] && images=( "$PHARO_PROJECT" )
-    images=( "${images[@]%.load.st}" )
 
     # Get base image, extract build hash.
     fetched="$(pharo_fetch_image "${PHARO_FILES}/pharo.zip")"
@@ -104,6 +103,13 @@ function pharo_build_image {
 #
 # When the functions below handle images, changes, and source files, they do so
 # based on their basename, or extensionless path.
+
+# **List** basenames of load scripts found in the current directory.
+function pharo_load_scripts {
+    find -E . -maxdepth 1 -regex '.*\.(load|local)\.st' \
+        | sed -E 's/\.(load|local)\.st$//' \
+        | uniq
+}
 
 # **Fetch** a zip archive containing image, changes, and sources files.
 function pharo_fetch_image {
