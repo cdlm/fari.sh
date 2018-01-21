@@ -33,11 +33,11 @@
    load.
  ```
 
- This will generate a `pharo-1c0ffee.image` file. The hex suffix comes from the
+ This will generate a `pharo.1c0ffee.image` file. The hex suffix comes from the
  downloaded snapthot and identifies which sources file matches the image.
 
  **Named images:** Instead of `load.st`, you can also use a named load script,
- e.g. `foo.load.st`, resulting in a matching `foo-*.image`. Several named
+ e.g. `foo.load.st`, resulting in a matching `foo.*.image`. Several named
  images can be generated, each with specific settings, by having as many named
  load scripts. If present, `load.st` is loaded before the named load script of
  each image; this is useful for sharing configuration in all named images.

@@ -34,11 +34,11 @@
 #   load.
 # ```
 #
-# This will generate a `pharo-1c0ffee.image` file. The hex suffix comes from the
+# This will generate a `pharo.1c0ffee.image` file. The hex suffix comes from the
 # downloaded snapthot and identifies which sources file matches the image.
 #
 # **Named images:** Instead of `load.st`, you can also use a named load script,
-# e.g. `foo.load.st`, resulting in a matching `foo-*.image`. Several named
+# e.g. `foo.load.st`, resulting in a matching `foo.*.image`. Several named
 # images can be generated, each with specific settings, by having as many named
 # load scripts. If present, `load.st` is loaded before the named load script of
 # each image; this is useful for sharing configuration in all named images.
@@ -108,14 +108,14 @@ function pharo_build_image {
 
     # We build all specified images first…
     for project in "${images[@]}"; do
-        pharo_delete "${project}.tmp"
-        pharo_prepare "$fetched" "$project" "${project}.tmp"
+        pharo_delete "${project}_tmp"
+        pharo_prepare "$fetched" "$project" "${project}_tmp"
     done
 
     # …and then back the old ones up, before moving the new ones in place.
     for project in "${images[@]}"; do
         pharo_backup "${project}"
-        pharo_rename "${project}.tmp" "${project}-${hash}"
+        pharo_rename "${project}_tmp" "${project}.${hash}"
     done
 }
 
@@ -184,10 +184,12 @@ function pharo_backup {
     local name="$1" backup_stamp
     backup_stamp="backup-$(date +%Y%m%d-%H%M)"
 
+    # Look for images with any hash
     shopt -s nullglob
-    for image in ${name}-*.image; do # match any hash
+    for image in ${name}.*.image; do
         image="${image%.image}"
-        pharo_rename "${image}" "${image}.${backup_stamp}"
+        local hash="${image##*.}" base="${image%.$hash}"
+        pharo_rename "${image}" "${base}_${backup_stamp}.${hash}"
     done
 }
 
