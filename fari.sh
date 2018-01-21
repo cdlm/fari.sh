@@ -64,7 +64,10 @@
 # `PHARO_FILES`: URL prefix for downloading the image; defaults to
 # `http://files.pharo.org/get-files/${PHARO_VERSION}`.
 #
-# ## License
+# `PHARO_IMAGE_FILE`: Name of the image distribution file to download; defaults
+# to `pharo.zip` but would be `pharo64.zip` for 64-bit images.
+#
+## License
 #
 # The [Fari source][github] is available on Github, and is released under the
 # [MIT license][mit]. See the [Docco][] generated docs for more information:
@@ -93,6 +96,7 @@ function pharo_build_image {
     : "${PHARO:=pharo-ui}"
     : "${PHARO_VERSION:=70}"
     : "${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}"}"
+    : "${PHARO_IMAGE_FILE:=pharo.zip}"
 
     local fetched hash
     local -a images=("$@")
@@ -103,7 +107,7 @@ function pharo_build_image {
     [[ ${#images[@]} -eq 0 ]] && images=( "$PHARO_PROJECT" )
 
     # Get base image, extract build hash.
-    fetched="$(pharo_fetch_image "${PHARO_FILES}/pharo.zip")"
+    fetched="$(pharo_fetch_image "${PHARO_FILES}/${PHARO_IMAGE_FILE}")"
     hash="${fetched##*-}"
 
     # We build all specified images first…

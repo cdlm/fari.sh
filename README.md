@@ -63,7 +63,10 @@
  `PHARO_FILES`: URL prefix for downloading the image; defaults to
  `http://files.pharo.org/get-files/${PHARO_VERSION}`.
 
- ## License
+ `PHARO_IMAGE_FILE`: Name of the image distribution file to download; defaults
+ to `pharo.zip` but would be `pharo64.zip` for 64-bit images.
+
+# License
 
  The [Fari source][github] is available on Github, and is released under the
  [MIT license][mit]. See the [Docco][] generated docs for more information:
