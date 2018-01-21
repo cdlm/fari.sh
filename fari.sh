@@ -90,7 +90,7 @@ IFS=$'\n\t'
 ### The image (re)build process
 
 # Download a fresh base image, then rebuild all specified project images.
-function pharo_build_image {
+function fari_build_image {
     # Ensure environment variables have sensible values.
     : "${PHARO_PROJECT:=pharo}"
     : "${PHARO:=pharo-ui}"
@@ -103,23 +103,23 @@ function pharo_build_image {
 
     # With no argument, we build one image per uniquely named load script in the
     # current directory, or default to `$PHARO_PROJECT`.
-    [[ ${#images[@]} -eq 0 ]] && images=( $(pharo_load_scripts) )
+    [[ ${#images[@]} -eq 0 ]] && images=( $(fari_load_scripts) )
     [[ ${#images[@]} -eq 0 ]] && images=( "$PHARO_PROJECT" )
 
     # Get base image, extract build hash.
-    fetched="$(pharo_fetch_image "${PHARO_FILES}/${PHARO_IMAGE_FILE}")"
+    fetched="$(fari_fetch_image "${PHARO_FILES}/${PHARO_IMAGE_FILE}")"
     hash="${fetched##*-}"
 
     # We build all specified images first…
     for project in "${images[@]}"; do
-        pharo_delete "${project}_tmp"
-        pharo_prepare "$fetched" "$project" "${project}_tmp"
+        fari_delete "${project}_tmp"
+        fari_prepare "$fetched" "$project" "${project}_tmp"
     done
 
     # …and then back the old ones up, before moving the new ones in place.
     for project in "${images[@]}"; do
-        pharo_backup "${project}"
-        pharo_rename "${project}_tmp" "${project}.${hash}"
+        fari_backup "${project}"
+        fari_rename "${project}_tmp" "${project}.${hash}"
     done
 }
 
@@ -129,7 +129,7 @@ function pharo_build_image {
 # based on their basename, or extensionless path.
 
 # **List** basenames of load scripts found in the current directory.
-function pharo_load_scripts {
+function fari_load_scripts {
     local regex='\.(load|local)\.st$'
     find . -maxdepth 1 -type f \
         | sed -En "/${regex}/s/${regex}//p" \
@@ -137,7 +137,7 @@ function pharo_load_scripts {
 }
 
 # **Fetch** a zip archive containing image, changes, and sources files.
-function pharo_fetch_image {
+function fari_fetch_image {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} url"
     local url="$1" downloaded tmp
 
@@ -157,7 +157,7 @@ function pharo_fetch_image {
 
 # **Rename** or copy an image+changes file pair. Will not overwrite existing
 # files.
-function pharo_rename {
+function fari_rename {
     [[ $# -ge 2 ]] || die "Usage: ${FUNCNAME[0]} [--copy] original new"
     local copy='mv'
     [[ "$1" = '--copy' ]] && { copy='cp'; shift; }
@@ -172,7 +172,7 @@ function pharo_rename {
 }
 
 # **Delete** image+changes file pairs.
-function pharo_delete {
+function fari_delete {
     [[ $# -ge 1 ]] || die "Usage: ${FUNCNAME[0]} basename..."
 
     for name in "$@"; do
@@ -183,7 +183,7 @@ function pharo_delete {
 
 # **Backup** an image+changes file pair. Backups have a `backup-YYYMMDD`
 # timestamp appended to their original basename.
-function pharo_backup {
+function fari_backup {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} name"
     local name="$1" backup_stamp
     backup_stamp="backup-$(date +%Y%m%d-%H%M)"
@@ -193,13 +193,13 @@ function pharo_backup {
     for image in ${name}.*.image; do
         image="${image%.image}"
         local hash="${image##*.}" base="${image%.$hash}"
-        pharo_rename "${image}" "${base}_${backup_stamp}.${hash}"
+        fari_rename "${image}" "${base}_${backup_stamp}.${hash}"
     done
 }
 
 # **Load** project code by running any available load scripts pertaining to the
 # `script` shortname, modifying the given `image` in place.
-function pharo_load {
+function fari_load {
     [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} script image"
     local script="$1" image="$2"
 
@@ -212,13 +212,13 @@ function pharo_load {
 
 # **Prepare** a `new` image, starting from the given `base`, loading project
 # `script`s.
-function pharo_prepare {
+function fari_prepare {
     [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0]} base script new"
     local base="$1" script="$2" new="$3"
 
-    pharo_rename --copy "$base" "$new"
+    fari_rename --copy "$base" "$new"
     cp -f "${base}.sources" "$(dirname "$new")"
-    pharo_load "$script" "$new"
+    fari_load "$script" "$new"
 }
 
 ### Shell utilities
@@ -240,5 +240,5 @@ function download_to {
 # Only call the main function if this script was called as a command. This makes
 # it possible to source this script as a library.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    pharo_build_image "$@"
+    fari_build_image "$@"
 fi
