@@ -240,5 +240,8 @@ function download_to {
 # Only call the main function if this script was called as a command. This makes
 # it possible to source this script as a library.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    fari_build_image "$@"
+    subcommand="${1:-build_image}"
+    command -v "fari_$subcommand" >/dev/null || die "Error: ${subcommand} is not a known subcommand."
+    shift
+    "fari_${subcommand}" "$@"
 fi
