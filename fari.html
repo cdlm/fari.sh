@@ -79,7 +79,9 @@ assuming that you have it in your <code>$PATH</code>. If you get your VMs from
 defaults to <code>70</code>.</p>
 <p><code>PHARO_FILES</code>: URL prefix for downloading the image; defaults to
 <code>http://files.pharo.org/get-files/${PHARO_VERSION}</code>.</p>
-<h2 id="license">License</h2>
+<p><code>PHARO_IMAGE_FILE</code>: Name of the image distribution file to download; defaults
+to <code>pharo.zip</code> but would be <code>pharo64.zip</code> for 64-bit images.</p>
+<h1 id="license">License</h1>
 <p>The <a href="https://github.com/cdlm/fari.sh">Fari source</a> is available on Github, and is released under the
 <a href="http://opensource.org/licenses/MIT">MIT license</a>. See the <a href="http://ashkenas.com/docco">Docco</a> generated docs for more information:
 <a href="https://cdlm.github.io/fari.sh">https://cdlm.github.io/fari.sh</a></p>
@@ -142,7 +144,7 @@ IFS=$<span class="hljs-string">'\n\t'</span></pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_build_image {</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_build_image {</pre></div></div>
             
         </li>
         
@@ -161,6 +163,7 @@ IFS=$<span class="hljs-string">'\n\t'</span></pre></div></div>
     : <span class="hljs-string">"<span class="hljs-variable">${PHARO:=pharo-ui}</span>"</span>
     : <span class="hljs-string">"<span class="hljs-variable">${PHARO_VERSION:=70}</span>"</span>
     : <span class="hljs-string">"<span class="hljs-variable">${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}</span>"</span>}<span class="hljs-string">"
+    : "</span><span class="hljs-variable">${PHARO_IMAGE_FILE:=pharo.zip}</span><span class="hljs-string">"
 
     local fetched hash
     local -a images=("</span><span class="hljs-variable">$@</span><span class="hljs-string">")
@@ -181,7 +184,7 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( $(pharo_load_scripts) )
+            <div class="content"><div class='highlight'><pre>    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( $(fari_load_scripts) )
     [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( <span class="hljs-string">"<span class="hljs-variable">$PHARO_PROJECT</span>"</span> )</pre></div></div>
             
         </li>
@@ -197,7 +200,7 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    fetched=<span class="hljs-string">"<span class="hljs-variable">$(pharo_fetch_image "${PHARO_FILES}/pharo.zip")</span>"</span>
+            <div class="content"><div class='highlight'><pre>    fetched=<span class="hljs-string">"<span class="hljs-variable">$(fari_fetch_image "${PHARO_FILES}/${PHARO_IMAGE_FILE}")</span>"</span>
     <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${fetched##*-}</span>"</span></pre></div></div>
             
         </li>
@@ -214,8 +217,8 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
-        pharo_delete <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
-        pharo_prepare <span class="hljs-string">"<span class="hljs-variable">$fetched</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$project</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
+        fari_delete <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
+        fari_prepare <span class="hljs-string">"<span class="hljs-variable">$fetched</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$project</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
     <span class="hljs-keyword">done</span></pre></div></div>
             
         </li>
@@ -232,8 +235,8 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
-        pharo_backup <span class="hljs-string">"<span class="hljs-variable">${project}</span>"</span>
-        pharo_rename <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>.<span class="hljs-variable">${hash}</span>"</span>
+        fari_backup <span class="hljs-string">"<span class="hljs-variable">${project}</span>"</span>
+        fari_rename <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>.<span class="hljs-variable">${hash}</span>"</span>
     <span class="hljs-keyword">done</span>
 }</pre></div></div>
             
@@ -265,7 +268,7 @@ based on their basename, or extensionless path.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_load_scripts {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_load_scripts {
     <span class="hljs-built_in">local</span> regex=<span class="hljs-string">'\.(load|local)\.st$'</span>
     find . -maxdepth 1 -<span class="hljs-built_in">type</span> f \
         | sed -En <span class="hljs-string">"/<span class="hljs-variable">${regex}</span>/s/<span class="hljs-variable">${regex}</span>//p"</span> \
@@ -285,7 +288,7 @@ based on their basename, or extensionless path.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_fetch_image {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_fetch_image {
     [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> url"</span>
     <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> downloaded tmp</pre></div></div>
             
@@ -341,7 +344,7 @@ files.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_rename {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_rename {
     [[ <span class="hljs-variable">$#</span> -ge 2 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> [--copy] original new"</span>
     <span class="hljs-built_in">local</span> copy=<span class="hljs-string">'mv'</span>
     [[ <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> = <span class="hljs-string">'--copy'</span> ]] &amp;&amp; { copy=<span class="hljs-string">'cp'</span>; <span class="hljs-built_in">shift</span>; }
@@ -368,7 +371,7 @@ files.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_delete {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_delete {
     [[ <span class="hljs-variable">$#</span> -ge 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> basename..."</span>
 
     <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>; <span class="hljs-keyword">do</span>
@@ -391,7 +394,7 @@ timestamp appended to their original basename.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_backup {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_backup {
     [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> name"</span>
     <span class="hljs-built_in">local</span> name=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> backup_stamp
     backup_stamp=<span class="hljs-string">"backup-<span class="hljs-variable">$(date +%Y%m%d-%H%M)</span>"</span></pre></div></div>
@@ -413,7 +416,7 @@ timestamp appended to their original basename.</p>
     <span class="hljs-keyword">for</span> image <span class="hljs-keyword">in</span> <span class="hljs-variable">${name}</span>.*.image; <span class="hljs-keyword">do</span>
         image=<span class="hljs-string">"<span class="hljs-variable">${image%.image}</span>"</span>
         <span class="hljs-built_in">local</span> <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${image##*.}</span>"</span> base=<span class="hljs-string">"<span class="hljs-variable">${image%.$hash}</span>"</span>
-        pharo_rename <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${base}</span>_<span class="hljs-variable">${backup_stamp}</span>.<span class="hljs-variable">${hash}</span>"</span>
+        fari_rename <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${base}</span>_<span class="hljs-variable">${backup_stamp}</span>.<span class="hljs-variable">${hash}</span>"</span>
     <span class="hljs-keyword">done</span>
 }</pre></div></div>
             
@@ -431,7 +434,7 @@ timestamp appended to their original basename.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_load {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_load {
     [[ <span class="hljs-variable">$#</span> -eq 2 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> script image"</span>
     <span class="hljs-built_in">local</span> script=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> image=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span>
 
@@ -456,13 +459,13 @@ timestamp appended to their original basename.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_prepare {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_prepare {
     [[ <span class="hljs-variable">$#</span> -eq 3 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> base script new"</span>
     <span class="hljs-built_in">local</span> base=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> script=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span> new=<span class="hljs-string">"<span class="hljs-variable">$3</span>"</span>
 
-    pharo_rename --copy <span class="hljs-string">"<span class="hljs-variable">$base</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
+    fari_rename --copy <span class="hljs-string">"<span class="hljs-variable">$base</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
     cp -f <span class="hljs-string">"<span class="hljs-variable">${base}</span>.sources"</span> <span class="hljs-string">"<span class="hljs-variable">$(dirname "$new")</span>"</span>
-    pharo_load <span class="hljs-string">"<span class="hljs-variable">$script</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
+    fari_load <span class="hljs-string">"<span class="hljs-variable">$script</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
 }</pre></div></div>
             
         </li>
@@ -542,7 +545,7 @@ it possible to source this script as a library.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> [[ <span class="hljs-string">"<span class="hljs-variable">${BASH_SOURCE[0]}</span>"</span> == <span class="hljs-string">"<span class="hljs-variable">$0</span>"</span> ]]; <span class="hljs-keyword">then</span>
-    pharo_build_image <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
+    fari_build_image <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
 <span class="hljs-keyword">fi</span></pre></div></div>
             
         </li>
