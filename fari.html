@@ -57,10 +57,10 @@ containing the needed code snippet in your project, typically something like:</p
   repository: <span class="hljs-string">'gitlocal://./src'</span>;
   load.
 </code></pre>
-<p>This will generate a <code>pharo-1c0ffee.image</code> file. The hex suffix comes from the
+<p>This will generate a <code>pharo.1c0ffee.image</code> file. The hex suffix comes from the
 downloaded snapthot and identifies which sources file matches the image.</p>
 <p><strong>Named images:</strong> Instead of <code>load.st</code>, you can also use a named load script,
-e.g. <code>foo.load.st</code>, resulting in a matching <code>foo-*.image</code>. Several named
+e.g. <code>foo.load.st</code>, resulting in a matching <code>foo.*.image</code>. Several named
 images can be generated, each with specific settings, by having as many named
 load scripts. If present, <code>load.st</code> is loaded before the named load script of
 each image; this is useful for sharing configuration in all named images.</p>
@@ -214,8 +214,8 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
-        pharo_delete <span class="hljs-string">"<span class="hljs-variable">${project}</span>.tmp"</span>
-        pharo_prepare <span class="hljs-string">"<span class="hljs-variable">$fetched</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$project</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>.tmp"</span>
+        pharo_delete <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
+        pharo_prepare <span class="hljs-string">"<span class="hljs-variable">$fetched</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$project</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
     <span class="hljs-keyword">done</span></pre></div></div>
             
         </li>
@@ -233,7 +233,7 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
         pharo_backup <span class="hljs-string">"<span class="hljs-variable">${project}</span>"</span>
-        pharo_rename <span class="hljs-string">"<span class="hljs-variable">${project}</span>.tmp"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>-<span class="hljs-variable">${hash}</span>"</span>
+        pharo_rename <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>.<span class="hljs-variable">${hash}</span>"</span>
     <span class="hljs-keyword">done</span>
 }</pre></div></div>
             
@@ -394,14 +394,7 @@ timestamp appended to their original basename.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> pharo_backup {
     [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> name"</span>
     <span class="hljs-built_in">local</span> name=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> backup_stamp
-    backup_stamp=<span class="hljs-string">"backup-<span class="hljs-variable">$(date +%Y%m%d-%H%M)</span>"</span>
-
-    <span class="hljs-built_in">shopt</span> -s nullglob
-    <span class="hljs-keyword">for</span> image <span class="hljs-keyword">in</span> <span class="hljs-variable">${name}</span>-*.image; <span class="hljs-keyword">do</span> <span class="hljs-comment"># match any hash</span>
-        image=<span class="hljs-string">"<span class="hljs-variable">${image%.image}</span>"</span>
-        pharo_rename <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>.<span class="hljs-variable">${backup_stamp}</span>"</span>
-    <span class="hljs-keyword">done</span>
-}</pre></div></div>
+    backup_stamp=<span class="hljs-string">"backup-<span class="hljs-variable">$(date +%Y%m%d-%H%M)</span>"</span></pre></div></div>
             
         </li>
         
@@ -411,6 +404,27 @@ timestamp appended to their original basename.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Look for images with any hash</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-built_in">shopt</span> -s nullglob
+    <span class="hljs-keyword">for</span> image <span class="hljs-keyword">in</span> <span class="hljs-variable">${name}</span>.*.image; <span class="hljs-keyword">do</span>
+        image=<span class="hljs-string">"<span class="hljs-variable">${image%.image}</span>"</span>
+        <span class="hljs-built_in">local</span> <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${image##*.}</span>"</span> base=<span class="hljs-string">"<span class="hljs-variable">${image%.$hash}</span>"</span>
+        pharo_rename <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${base}</span>_<span class="hljs-variable">${backup_stamp}</span>.<span class="hljs-variable">${hash}</span>"</span>
+    <span class="hljs-keyword">done</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p><strong>Load</strong> project code by running any available load scripts pertaining to the
 <code>script</code> shortname, modifying the given <code>image</code> in place.</p>
@@ -431,11 +445,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-21">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p><strong>Prepare</strong> a <code>new</code> image, starting from the given <code>base</code>, loading project
 <code>script</code>s.</p>
@@ -454,11 +468,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <h2 id="shell-utilities">Shell utilities</h2>
 
@@ -467,11 +481,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-23">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p>Abort execution with an error message and non-zero status.</p>
 
@@ -482,11 +496,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-24">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p>Download a <code>url</code> to the given file. A convenience wrapper around <code>curl</code> or
 <code>wget</code>.</p>
@@ -503,11 +517,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-25">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <h2 id="launch-time-">Launch time!</h2>
 
@@ -516,11 +530,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-26">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>Only call the main function if this script was called as a command. This makes
 it possible to source this script as a library.</p>
