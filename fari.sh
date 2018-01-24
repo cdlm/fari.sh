@@ -87,10 +87,30 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-### The image (re)build process
+### Invocation syntax
 
-# Download a fresh base image, then rebuild all specified project images.
-function fari_build_image {
+# Fari makes each of the `fari_*` functions defined below available as
+# subcommands. For instance, `fari build foo` would invoke the `fari_build`
+# function, passing `foo` along as the name of the image to build.
+#
+# Running `fari` with no argument is equivalent to `fari build`.
+function dispatch_subcommand {
+    subcommand="${1:-build}"
+    # if the command was specified, drop it from the arguments
+    [[ $# -ge 1 ]] && shift
+    command -v "fari_${subcommand}" >/dev/null || die "Error: ${subcommand} is not a known subcommand."
+
+    "fari_${subcommand}" "$@"
+}
+
+
+### Subcommands
+#
+# When the functions below handle images, changes, and source files, they do so
+# based on their basename, or extensionless path.
+
+# **Build** all specified project images from a freshly downloaded base.
+function fari_build {
     # Ensure environment variables have sensible values.
     : "${PHARO_PROJECT:=pharo}"
     : "${PHARO:=pharo-ui}"
@@ -122,11 +142,6 @@ function fari_build_image {
         fari_rename "${project}_tmp" "${project}.${hash}"
     done
 }
-
-### Subcommands
-#
-# When the functions below handle images, changes, and source files, they do so
-# based on their basename, or extensionless path.
 
 # **List** basenames of load scripts found in the current directory.
 function fari_list {
@@ -240,8 +255,5 @@ function download_to {
 # Only call the main function if this script was called as a command. This makes
 # it possible to source this script as a library.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    subcommand="${1:-build_image}"
-    command -v "fari_$subcommand" >/dev/null || die "Error: ${subcommand} is not a known subcommand."
-    shift
-    "fari_${subcommand}" "$@"
+    dispatch_subcommand "$@"
 fi
