@@ -93,16 +93,33 @@ IFS=$'\n\t'
 # subcommands. For instance, `fari build foo` would invoke the `fari_build`
 # function, passing `foo` along as the name of the image to build.
 #
-# Running `fari` with no argument is equivalent to `fari build`.
+# For convenience, we accept alternate names for some of the subcommands;
+# running `fari` with no argument is equivalent to `fari build`.
 function dispatch_subcommand {
-    subcommand="${1:-build}"
-    # if the command was specified, drop it from the arguments
+    local subcommand="${1:-build}"
+    # If the command was specified, drop it from the arguments.
     [[ $# -ge 1 ]] && shift
-    command -v "fari_${subcommand}" >/dev/null || die "Error: ${subcommand} is not a known subcommand."
 
-    "fari_${subcommand}" "$@"
+    # Resolve subcommand into function + first arguments.
+    local -a actual
+    case "$subcommand" in
+        build | fetch | backup | load | prepare )
+            actual=("fari_$subcommand") ;;
+        list | ls )
+            actual=('fari_list') ;;
+        rename | mv )
+            actual=('fari_rename') ;;
+        copy | cp )
+            actual=('fari_rename' '--copy') ;;
+        delete | rm )
+            actual=('fari_delete') ;;
+        * )
+            die "Error: ${subcommand} is not a known subcommand." ;;
+    esac
+
+    # Invoke the actual subcommand.
+    "${actual[@]}" "$@"
 }
-
 
 ### Subcommands
 #
