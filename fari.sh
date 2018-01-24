@@ -103,11 +103,11 @@ function fari_build_image {
 
     # With no argument, we build one image per uniquely named load script in the
     # current directory, or default to `$PHARO_PROJECT`.
-    [[ ${#images[@]} -eq 0 ]] && images=( $(fari_load_scripts) )
+    [[ ${#images[@]} -eq 0 ]] && images=( $(fari_list) )
     [[ ${#images[@]} -eq 0 ]] && images=( "$PHARO_PROJECT" )
 
     # Get base image, extract build hash.
-    fetched="$(fari_fetch_image "${PHARO_FILES}/${PHARO_IMAGE_FILE}")"
+    fetched="$(fari_fetch "${PHARO_FILES}/${PHARO_IMAGE_FILE}")"
     hash="${fetched##*-}"
 
     # We build all specified images first…
@@ -129,7 +129,7 @@ function fari_build_image {
 # based on their basename, or extensionless path.
 
 # **List** basenames of load scripts found in the current directory.
-function fari_load_scripts {
+function fari_list {
     local regex='\.(load|local)\.st$'
     find . -maxdepth 1 -type f \
         | sed -En "/${regex}/s/${regex}//p" \
@@ -137,7 +137,7 @@ function fari_load_scripts {
 }
 
 # **Fetch** a zip archive containing image, changes, and sources files.
-function fari_fetch_image {
+function fari_fetch {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} url"
     local url="$1" downloaded tmp
 
