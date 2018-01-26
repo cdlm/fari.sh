@@ -168,23 +168,7 @@ function fari_list {
         | uniq
 }
 
-# **Fetch** a zip archive containing image, changes, and sources files.
-function fari_fetch {
-    [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} url"
-    local url="$1" downloaded tmp
 
-    # Download & unzip everything in a temporary directory.
-    tmp=$(mktemp -dt "pharo.XXXXXX") #TODO clean up automatically
-    download_to "${tmp}/image.zip" "$url" #TODO cache in a known place and continue?
-    unzip -q "${tmp}/image.zip" -d "$tmp"
-
-    # The filenames include the short hash of the commit they were generated
-    # from, which is not predictable from the URL. We find and check that the
-    # file does exist (`ls` will fail otherwise), then return its full path,
-    # minus extension.
-    downloaded="$(ls "${tmp}"/*.image)"
-    downloaded="${downloaded%.image}"
-    echo "$downloaded"
 }
 
 # **Rename** or copy an image+changes file pair. Will not overwrite existing
@@ -227,6 +211,25 @@ function fari_backup {
         local hash="${image##*.}" base="${image%.$hash}"
         fari_rename "${image}" "${base}_${backup_stamp}.${hash}"
     done
+}
+
+# **Fetch** a zip archive containing image, changes, and sources files.
+function fari_fetch {
+    [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} url"
+    local url="$1" downloaded tmp
+
+    # Download & unzip everything in a temporary directory.
+    tmp=$(mktemp -dt "pharo.XXXXXX") #TODO clean up automatically
+    download_to "${tmp}/image.zip" "$url" #TODO cache in a known place and continue?
+    unzip -q "${tmp}/image.zip" -d "$tmp"
+
+    # The filenames include the short hash of the commit they were generated
+    # from, which is not predictable from the URL. We find and check that the
+    # file does exist (`ls` will fail otherwise), then return its full path,
+    # minus extension.
+    downloaded="$(ls "${tmp}"/*.image)"
+    downloaded="${downloaded%.image}"
+    echo "$downloaded"
 }
 
 # **Load** project code by running any available load scripts pertaining to the
