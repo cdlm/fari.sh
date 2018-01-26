@@ -103,7 +103,7 @@ function dispatch_subcommand {
     # Resolve subcommand into function + first arguments.
     local -a actual
     case "$subcommand" in
-        build | fetch | backup | load | prepare )
+        build | fetch | backup | load | prepare | run )
             actual=("fari_$subcommand") ;;
         list | ls )
             actual=('fari_list') ;;
@@ -168,7 +168,13 @@ function fari_list {
         | uniq
 }
 
+# **Run** an existing image.
+function fari_run {
+    [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} image"
+    local image="$1"
 
+    [ -e "${image}.image" ] || die "No such image: ${image}.image"
+    ${PHARO} "${image}.image"
 }
 
 # **Rename** or copy an image+changes file pair. Will not overwrite existing
