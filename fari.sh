@@ -207,14 +207,15 @@ function fari_delete {
 # timestamp appended to their original basename.
 function fari_backup {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} name"
-    local name="$1" backup_stamp
+    local name="$1" backup_stamp hash base
     backup_stamp="backup-$(date +%Y%m%d-%H%M)"
 
     # Look for images with any hash
     shopt -s nullglob
     for image in ${name}.*.image; do
         image="${image%.image}"
-        local hash="${image##*.}" base="${image%.$hash}"
+        hash="${image##*.}"
+        base="${image%.$hash}"
         fari_rename "${image}" "${base}_${backup_stamp}.${hash}"
     done
 }
