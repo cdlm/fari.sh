@@ -181,7 +181,7 @@ running <code>fari</code> with no argument is equivalent to <code>fari build</co
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-built_in">local</span> -a actual
     <span class="hljs-keyword">case</span> <span class="hljs-string">"<span class="hljs-variable">$subcommand</span>"</span> <span class="hljs-keyword">in</span>
-        build | fetch | backup | load | prepare )
+        build | fetch | backup | load | prepare | run )
             actual=(<span class="hljs-string">"fari_<span class="hljs-variable">$subcommand</span>"</span>) ;;
         list | ls )
             actual=(<span class="hljs-string">'fari_list'</span>) ;;
@@ -364,13 +364,17 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
-              <p><strong>Fetch</strong> a zip archive containing image, changes, and sources files.</p>
+              <p><strong>Run</strong> an existing image.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_fetch {
-    [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> url"</span>
-    <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> downloaded tmp</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_run {
+    [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> image"</span>
+    <span class="hljs-built_in">local</span> image=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span>
+
+    [ -e <span class="hljs-string">"<span class="hljs-variable">${image}</span>.image"</span> ] || die <span class="hljs-string">"No such image: <span class="hljs-variable">${image}</span>.image"</span>
+    <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>.image"</span>
+}</pre></div></div>
             
         </li>
         
@@ -380,44 +384,6 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-19">&#182;</a>
-              </div>
-              <p>Download &amp; unzip everything in a temporary directory.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    tmp=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>) <span class="hljs-comment">#TODO clean up automatically</span>
-    download_to <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> <span class="hljs-string">"<span class="hljs-variable">$url</span>"</span> <span class="hljs-comment">#TODO cache in a known place and continue?</span>
-    unzip -q <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> -d <span class="hljs-string">"<span class="hljs-variable">$tmp</span>"</span></pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-20">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
-              </div>
-              <p>The filenames include the short hash of the commit they were generated
-from, which is not predictable from the URL. We find and check that the
-file does exist (<code>ls</code> will fail otherwise), then return its full path,
-minus extension.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    downloaded=<span class="hljs-string">"<span class="hljs-variable">$(ls "${tmp}"/*.image)</span>"</span>
-    downloaded=<span class="hljs-string">"<span class="hljs-variable">${downloaded%.image}</span>"</span>
-    <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$downloaded</span>"</span>
-}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-21">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p><strong>Rename</strong> or copy an image+changes file pair. Will not overwrite existing
 files.</p>
@@ -441,11 +407,11 @@ files.</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p><strong>Delete</strong> image+changes file pairs.</p>
 
@@ -463,11 +429,11 @@ files.</p>
         </li>
         
         
-        <li id="section-23">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p><strong>Backup</strong> an image+changes file pair. Backups have a <code>backup-YYYMMDD</code>
 timestamp appended to their original basename.</p>
@@ -482,11 +448,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-24">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>Look for images with any hash</p>
 
@@ -503,11 +469,66 @@ timestamp appended to their original basename.</p>
         </li>
         
         
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p><strong>Fetch</strong> a zip archive containing image, changes, and sources files.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_fetch {
+    [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> url"</span>
+    <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> downloaded tmp</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Download &amp; unzip everything in a temporary directory.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    tmp=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>) <span class="hljs-comment">#TODO clean up automatically</span>
+    download_to <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> <span class="hljs-string">"<span class="hljs-variable">$url</span>"</span> <span class="hljs-comment">#TODO cache in a known place and continue?</span>
+    unzip -q <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> -d <span class="hljs-string">"<span class="hljs-variable">$tmp</span>"</span></pre></div></div>
+            
+        </li>
+        
+        
         <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>The filenames include the short hash of the commit they were generated
+from, which is not predictable from the URL. We find and check that the
+file does exist (<code>ls</code> will fail otherwise), then return its full path,
+minus extension.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    downloaded=<span class="hljs-string">"<span class="hljs-variable">$(ls "${tmp}"/*.image)</span>"</span>
+    downloaded=<span class="hljs-string">"<span class="hljs-variable">${downloaded%.image}</span>"</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$downloaded</span>"</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p><strong>Load</strong> project code by running any available load scripts pertaining to the
 <code>script</code> shortname, modifying the given <code>image</code> in place.</p>
@@ -528,11 +549,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-26">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p><strong>Prepare</strong> a <code>new</code> image, starting from the given <code>base</code>, loading project
 <code>script</code>s.</p>
@@ -542,24 +563,7 @@ timestamp appended to their original basename.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_prepare {
     [[ <span class="hljs-variable">$#</span> -eq 3 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> base script new"</span>
     <span class="hljs-built_in">local</span> base=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> script=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span> new=<span class="hljs-string">"<span class="hljs-variable">$3</span>"</span>
-
-    fari_rename --copy <span class="hljs-string">"<span class="hljs-variable">$base</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
-    cp -f <span class="hljs-string">"<span class="hljs-variable">${base}</span>.sources"</span> <span class="hljs-string">"<span class="hljs-variable">$(dirname "$new")</span>"</span>
-    fari_load <span class="hljs-string">"<span class="hljs-variable">$script</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
-}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-27">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
-              </div>
-              <h2 id="shell-utilities">Shell utilities</h2>
-
-            </div>
+    <span class="hljs-built_in">local</span> sources=<span class="hljs-string">"<span class="hljs-variable">${base}</span>.sources"</span></pre></div></div>
             
         </li>
         
@@ -570,11 +574,18 @@ timestamp appended to their original basename.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
-              <p>Abort execution with an error message and non-zero status.</p>
+              <p>64-bit images use source file named after 32-bit</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> die { <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 1&gt;&amp;2; <span class="hljs-built_in">exit</span> 1; }</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> [[ ! -f <span class="hljs-string">"<span class="hljs-variable">${sources}</span>"</span> ]]; <span class="hljs-keyword">then</span>
+        sources=<span class="hljs-string">"<span class="hljs-variable">${sources/-64bit-/-32bit-}</span>"</span>
+        [[ -f <span class="hljs-string">"<span class="hljs-variable">${sources}</span>"</span> ]] || die <span class="hljs-string">"Could not find the sources file for this image"</span>
+    <span class="hljs-keyword">fi</span>
+    cp -f <span class="hljs-string">"<span class="hljs-variable">${sources}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$(dirname "$new")</span>"</span>
+    fari_rename --copy <span class="hljs-string">"<span class="hljs-variable">$base</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
+    fari_load <span class="hljs-string">"<span class="hljs-variable">$script</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
+}</pre></div></div>
             
         </li>
         
@@ -584,6 +595,64 @@ timestamp appended to their original basename.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <h2 id="shell-utilities">Shell utilities</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Silence output of a command.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> silently { <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 2&gt;/dev/null; }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Display progress message.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> info { <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 1&gt;&amp;2; }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>Abort execution with an error message and non-zero status.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> die { <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 1&gt;&amp;2; <span class="hljs-built_in">exit</span> 1; }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
               <p>Download a <code>url</code> to the given file. A convenience wrapper around <code>curl</code> or
 <code>wget</code>.</p>
@@ -600,11 +669,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-30">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-30">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <h2 id="launch-time-">Launch time!</h2>
 
@@ -613,11 +682,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-31">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-31">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <p>Only call the main function if this script was called as a command. This makes
 it possible to source this script as a library.</p>
