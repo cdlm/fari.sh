@@ -270,6 +270,12 @@ function fari_prepare {
 
 ### Shell utilities
 
+# Silence output of a command.
+function silently { "$@" 2>/dev/null; }
+
+# Display progress message.
+function info { echo "$@" 1>&2; }
+
 # Abort execution with an error message and non-zero status.
 function die { echo "$@" 1>&2; exit 1; }
 
