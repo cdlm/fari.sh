@@ -256,9 +256,15 @@ function fari_load {
 function fari_prepare {
     [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0]} base script new"
     local base="$1" script="$2" new="$3"
+    local sources="${base}.sources"
 
+    # 64-bit images use source file named after 32-bit
+    if [[ ! -f "${sources}" ]]; then
+        sources="${sources/-64bit-/-32bit-}"
+        [[ -f "${sources}" ]] || die "Could not find the sources file for this image"
+    fi
+    cp -f "${sources}" "$(dirname "$new")"
     fari_rename --copy "$base" "$new"
-    cp -f "${base}.sources" "$(dirname "$new")"
     fari_load "$script" "$new"
 }
 
