@@ -148,7 +148,7 @@ running <code>fari</code> with no argument is equivalent to <code>fari build</co
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> dispatch_subcommand {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">dispatch_subcommand</span></span>() {
     <span class="hljs-built_in">local</span> subcommand=<span class="hljs-string">"<span class="hljs-variable">${1:-build}</span>"</span></pre></div></div>
             
         </li>
@@ -181,18 +181,24 @@ running <code>fari</code> with no argument is equivalent to <code>fari build</co
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-built_in">local</span> -a actual
     <span class="hljs-keyword">case</span> <span class="hljs-string">"<span class="hljs-variable">$subcommand</span>"</span> <span class="hljs-keyword">in</span>
-        build | fetch | backup | load | prepare | run )
-            actual=(<span class="hljs-string">"fari_<span class="hljs-variable">$subcommand</span>"</span>) ;;
-        list | ls )
-            actual=(<span class="hljs-string">'fari_list'</span>) ;;
-        rename | mv )
-            actual=(<span class="hljs-string">'fari_rename'</span>) ;;
-        copy | cp )
-            actual=(<span class="hljs-string">'fari_rename'</span> <span class="hljs-string">'--copy'</span>) ;;
-        delete | rm )
-            actual=(<span class="hljs-string">'fari_delete'</span>) ;;
-        * )
-            die <span class="hljs-string">"Error: <span class="hljs-variable">${subcommand}</span> is not a known subcommand."</span> ;;
+        build | fetch | backup | load | prepare | run)
+            actual=(<span class="hljs-string">"fari_<span class="hljs-variable">$subcommand</span>"</span>)
+            ;;
+        list | ls)
+            actual=(<span class="hljs-string">'fari_list'</span>)
+            ;;
+        rename | mv)
+            actual=(<span class="hljs-string">'fari_rename'</span>)
+            ;;
+        copy | cp)
+            actual=(<span class="hljs-string">'fari_rename'</span> <span class="hljs-string">'--copy'</span>)
+            ;;
+        delete | rm)
+            actual=(<span class="hljs-string">'fari_delete'</span>)
+            ;;
+        *)
+            die <span class="hljs-string">"Error: <span class="hljs-variable">${subcommand}</span> is not a known subcommand."</span>
+            ;;
     <span class="hljs-keyword">esac</span></pre></div></div>
             
         </li>
@@ -239,7 +245,7 @@ based on their basename, or extensionless path.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_build {</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_build</span></span>() {</pre></div></div>
             
         </li>
         
@@ -279,8 +285,8 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( $(fari_list) )
-    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=( <span class="hljs-string">"<span class="hljs-variable">$PHARO_PROJECT</span>"</span> )</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=($(fari_list))
+    [[ <span class="hljs-variable">${#images[@]}</span> -eq 0 ]] &amp;&amp; images=(<span class="hljs-string">"<span class="hljs-variable">$PHARO_PROJECT</span>"</span>)</pre></div></div>
             
         </li>
         
@@ -348,7 +354,7 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_list {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_list</span></span>() {
     <span class="hljs-built_in">local</span> regex=<span class="hljs-string">'\.(load|local)\.st$'</span>
     find . -maxdepth 1 -<span class="hljs-built_in">type</span> f \
         | sed -En <span class="hljs-string">"/<span class="hljs-variable">${regex}</span>/s/<span class="hljs-variable">${regex}</span>//p"</span> \
@@ -368,7 +374,7 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_run {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_run</span></span>() {
     [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> image"</span>
     <span class="hljs-built_in">local</span> image=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span>
 
@@ -390,10 +396,13 @@ files.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_rename {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_rename</span></span>() {
     [[ <span class="hljs-variable">$#</span> -ge 2 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> [--copy] original new"</span>
     <span class="hljs-built_in">local</span> copy=<span class="hljs-string">'mv'</span>
-    [[ <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> = <span class="hljs-string">'--copy'</span> ]] &amp;&amp; { copy=<span class="hljs-string">'cp'</span>; <span class="hljs-built_in">shift</span>; }
+    [[ <span class="hljs-variable">$1</span> == <span class="hljs-string">'--copy'</span> ]] &amp;&amp; {
+        copy=<span class="hljs-string">'cp'</span>
+        <span class="hljs-built_in">shift</span>
+    }
     <span class="hljs-built_in">local</span> original=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> new=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span>
 
     [ -e <span class="hljs-string">"<span class="hljs-variable">${original}</span>.image"</span> ] || die <span class="hljs-string">"No original image: <span class="hljs-variable">${original}</span>.image"</span>
@@ -417,7 +426,7 @@ files.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_delete {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_delete</span></span>() {
     [[ <span class="hljs-variable">$#</span> -ge 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> basename..."</span>
 
     <span class="hljs-keyword">for</span> name <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>; <span class="hljs-keyword">do</span>
@@ -440,7 +449,7 @@ timestamp appended to their original basename.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_backup {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_backup</span></span>() {
     [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> name"</span>
     <span class="hljs-built_in">local</span> name=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> backup_stamp <span class="hljs-built_in">hash</span> base
     backup_stamp=<span class="hljs-string">"backup-<span class="hljs-variable">$(date +%Y%m%d-%H%M)</span>"</span></pre></div></div>
@@ -480,7 +489,7 @@ timestamp appended to their original basename.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_fetch {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_fetch</span></span>() {
     [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> url"</span>
     <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> downloaded tmp</pre></div></div>
             
@@ -497,7 +506,7 @@ timestamp appended to their original basename.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    tmp=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>) <span class="hljs-comment">#TODO clean up automatically</span>
+            <div class="content"><div class='highlight'><pre>    tmp=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>)      <span class="hljs-comment">#TODO clean up automatically</span>
     download_to <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> <span class="hljs-string">"<span class="hljs-variable">$url</span>"</span> <span class="hljs-comment">#TODO cache in a known place and continue?</span>
     unzip -q <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> -d <span class="hljs-string">"<span class="hljs-variable">$tmp</span>"</span></pre></div></div>
             
@@ -536,12 +545,12 @@ minus extension.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_load {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_load</span></span>() {
     [[ <span class="hljs-variable">$#</span> -eq 2 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> script image"</span>
     <span class="hljs-built_in">local</span> script=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> image=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span>
 
     <span class="hljs-keyword">for</span> script_file <span class="hljs-keyword">in</span> <span class="hljs-string">"load.st"</span> <span class="hljs-string">"<span class="hljs-variable">${script}</span>.load.st"</span> <span class="hljs-string">"local.st"</span> <span class="hljs-string">"<span class="hljs-variable">${script}</span>.local.st"</span>; <span class="hljs-keyword">do</span>
-        <span class="hljs-keyword">if</span> [[ -e <span class="hljs-string">"<span class="hljs-variable">$script_file</span>"</span> ]]; <span class="hljs-keyword">then</span>
+        <span class="hljs-keyword">if</span> [[ -e <span class="hljs-variable">$script_file</span> ]]; <span class="hljs-keyword">then</span>
             <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>.image"</span> st --save --quit <span class="hljs-string">"<span class="hljs-variable">$script_file</span>"</span>
         <span class="hljs-keyword">fi</span>
     <span class="hljs-keyword">done</span>
@@ -561,7 +570,7 @@ minus extension.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> fari_prepare {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_prepare</span></span>() {
     [[ <span class="hljs-variable">$#</span> -eq 3 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> base script new"</span>
     <span class="hljs-built_in">local</span> base=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> script=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span> new=<span class="hljs-string">"<span class="hljs-variable">$3</span>"</span>
     <span class="hljs-built_in">local</span> sources=<span class="hljs-string">"<span class="hljs-variable">${base}</span>.sources"</span></pre></div></div>
@@ -579,9 +588,9 @@ minus extension.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> [[ ! -f <span class="hljs-string">"<span class="hljs-variable">${sources}</span>"</span> ]]; <span class="hljs-keyword">then</span>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> [[ ! -f <span class="hljs-variable">${sources}</span> ]]; <span class="hljs-keyword">then</span>
         sources=<span class="hljs-string">"<span class="hljs-variable">${sources/-64bit-/-32bit-}</span>"</span>
-        [[ -f <span class="hljs-string">"<span class="hljs-variable">${sources}</span>"</span> ]] || die <span class="hljs-string">"Could not find the sources file for this image"</span>
+        [[ -f <span class="hljs-variable">${sources}</span> ]] || die <span class="hljs-string">"Could not find the sources file for this image"</span>
     <span class="hljs-keyword">fi</span>
     cp -f <span class="hljs-string">"<span class="hljs-variable">${sources}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$(dirname "$new")</span>"</span>
     fari_rename --copy <span class="hljs-string">"<span class="hljs-variable">$base</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
@@ -614,7 +623,7 @@ minus extension.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> silently { <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 2&gt;/dev/null; }</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">silently</span></span>() { <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 2&gt;/dev/null; }</pre></div></div>
             
         </li>
         
@@ -629,7 +638,7 @@ minus extension.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> info { <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 1&gt;&amp;2; }</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">info</span></span>() { <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 1&gt;&amp;2; }</pre></div></div>
             
         </li>
         
@@ -644,7 +653,10 @@ minus extension.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> die { <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 1&gt;&amp;2; <span class="hljs-built_in">exit</span> 1; }</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">die</span></span>() {
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span> 1&gt;&amp;2
+    <span class="hljs-built_in">exit</span> 1
+}</pre></div></div>
             
         </li>
         
@@ -660,7 +672,7 @@ minus extension.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> download_to {
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">download_to</span></span>() {
     [[ <span class="hljs-variable">$#</span> -eq 2 ]] || <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> filename url"</span>
     <span class="hljs-built_in">local</span> dest=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> url=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span>
 
@@ -694,7 +706,7 @@ it possible to source this script as a library.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> [[ <span class="hljs-string">"<span class="hljs-variable">${BASH_SOURCE[0]}</span>"</span> == <span class="hljs-string">"<span class="hljs-variable">$0</span>"</span> ]]; <span class="hljs-keyword">then</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> [[ <span class="hljs-variable">${BASH_SOURCE[0]}</span> == <span class="hljs-string">"<span class="hljs-variable">$0</span>"</span> ]]; <span class="hljs-keyword">then</span>
     dispatch_subcommand <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
 <span class="hljs-keyword">fi</span></pre></div></div>
             
