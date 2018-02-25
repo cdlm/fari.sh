@@ -95,7 +95,7 @@ IFS=$'\n\t'
 #
 # For convenience, we accept alternate names for some of the subcommands;
 # running `fari` with no argument is equivalent to `fari build`.
-function dispatch_subcommand {
+function dispatch_subcommand() {
     local subcommand="${1:-build}"
     # If the command was specified, drop it from the arguments.
     [[ $# -ge 1 ]] && shift
@@ -103,18 +103,24 @@ function dispatch_subcommand {
     # Resolve subcommand into function + first arguments.
     local -a actual
     case "$subcommand" in
-        build | fetch | backup | load | prepare | run )
-            actual=("fari_$subcommand") ;;
-        list | ls )
-            actual=('fari_list') ;;
-        rename | mv )
-            actual=('fari_rename') ;;
-        copy | cp )
-            actual=('fari_rename' '--copy') ;;
-        delete | rm )
-            actual=('fari_delete') ;;
-        * )
-            die "Error: ${subcommand} is not a known subcommand." ;;
+        build | fetch | backup | load | prepare | run)
+            actual=("fari_$subcommand")
+            ;;
+        list | ls)
+            actual=('fari_list')
+            ;;
+        rename | mv)
+            actual=('fari_rename')
+            ;;
+        copy | cp)
+            actual=('fari_rename' '--copy')
+            ;;
+        delete | rm)
+            actual=('fari_delete')
+            ;;
+        *)
+            die "Error: ${subcommand} is not a known subcommand."
+            ;;
     esac
 
     # Invoke the actual subcommand.
@@ -127,7 +133,7 @@ function dispatch_subcommand {
 # based on their basename, or extensionless path.
 
 # **Build** all specified project images from a freshly downloaded base.
-function fari_build {
+function fari_build() {
     # Ensure environment variables have sensible values.
     : "${PHARO_PROJECT:=pharo}"
     : "${PHARO:=pharo-ui}"
@@ -140,8 +146,8 @@ function fari_build {
 
     # With no argument, we build one image per uniquely named load script in the
     # current directory, or default to `$PHARO_PROJECT`.
-    [[ ${#images[@]} -eq 0 ]] && images=( $(fari_list) )
-    [[ ${#images[@]} -eq 0 ]] && images=( "$PHARO_PROJECT" )
+    [[ ${#images[@]} -eq 0 ]] && images=($(fari_list))
+    [[ ${#images[@]} -eq 0 ]] && images=("$PHARO_PROJECT")
 
     # Get base image, extract build hash.
     fetched="$(fari_fetch "${PHARO_FILES}/${PHARO_IMAGE_FILE}")"
@@ -161,7 +167,7 @@ function fari_build {
 }
 
 # **List** basenames of load scripts found in the current directory.
-function fari_list {
+function fari_list() {
     local regex='\.(load|local)\.st$'
     find . -maxdepth 1 -type f \
         | sed -En "/${regex}/s/${regex}//p" \
@@ -169,7 +175,7 @@ function fari_list {
 }
 
 # **Run** an existing image.
-function fari_run {
+function fari_run() {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} image"
     local image="$1"
 
@@ -179,10 +185,13 @@ function fari_run {
 
 # **Rename** or copy an image+changes file pair. Will not overwrite existing
 # files.
-function fari_rename {
+function fari_rename() {
     [[ $# -ge 2 ]] || die "Usage: ${FUNCNAME[0]} [--copy] original new"
     local copy='mv'
-    [[ "$1" = '--copy' ]] && { copy='cp'; shift; }
+    [[ $1 == '--copy' ]] && {
+        copy='cp'
+        shift
+    }
     local original="$1" new="$2"
 
     [ -e "${original}.image" ] || die "No original image: ${original}.image"
@@ -194,7 +203,7 @@ function fari_rename {
 }
 
 # **Delete** image+changes file pairs.
-function fari_delete {
+function fari_delete() {
     [[ $# -ge 1 ]] || die "Usage: ${FUNCNAME[0]} basename..."
 
     for name in "$@"; do
@@ -205,7 +214,7 @@ function fari_delete {
 
 # **Backup** an image+changes file pair. Backups have a `backup-YYYMMDD`
 # timestamp appended to their original basename.
-function fari_backup {
+function fari_backup() {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} name"
     local name="$1" backup_stamp hash base
     backup_stamp="backup-$(date +%Y%m%d-%H%M)"
@@ -221,12 +230,12 @@ function fari_backup {
 }
 
 # **Fetch** a zip archive containing image, changes, and sources files.
-function fari_fetch {
+function fari_fetch() {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} url"
     local url="$1" downloaded tmp
 
     # Download & unzip everything in a temporary directory.
-    tmp=$(mktemp -dt "pharo.XXXXXX") #TODO clean up automatically
+    tmp=$(mktemp -dt "pharo.XXXXXX")      #TODO clean up automatically
     download_to "${tmp}/image.zip" "$url" #TODO cache in a known place and continue?
     unzip -q "${tmp}/image.zip" -d "$tmp"
 
@@ -241,12 +250,12 @@ function fari_fetch {
 
 # **Load** project code by running any available load scripts pertaining to the
 # `script` shortname, modifying the given `image` in place.
-function fari_load {
+function fari_load() {
     [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} script image"
     local script="$1" image="$2"
 
     for script_file in "load.st" "${script}.load.st" "local.st" "${script}.local.st"; do
-        if [[ -e "$script_file" ]]; then
+        if [[ -e $script_file ]]; then
             ${PHARO} "${image}.image" st --save --quit "$script_file"
         fi
     done
@@ -254,15 +263,15 @@ function fari_load {
 
 # **Prepare** a `new` image, starting from the given `base`, loading project
 # `script`s.
-function fari_prepare {
+function fari_prepare() {
     [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0]} base script new"
     local base="$1" script="$2" new="$3"
     local sources="${base}.sources"
 
     # 64-bit images use source file named after 32-bit
-    if [[ ! -f "${sources}" ]]; then
+    if [[ ! -f ${sources} ]]; then
         sources="${sources/-64bit-/-32bit-}"
-        [[ -f "${sources}" ]] || die "Could not find the sources file for this image"
+        [[ -f ${sources} ]] || die "Could not find the sources file for this image"
     fi
     cp -f "${sources}" "$(dirname "$new")"
     fari_rename --copy "$base" "$new"
@@ -272,17 +281,20 @@ function fari_prepare {
 ### Shell utilities
 
 # Silence output of a command.
-function silently { "$@" 2>/dev/null; }
+function silently() { "$@" 2>/dev/null; }
 
 # Display progress message.
-function info { echo "$@" 1>&2; }
+function info() { echo "$@" 1>&2; }
 
 # Abort execution with an error message and non-zero status.
-function die { echo "$@" 1>&2; exit 1; }
+function die() {
+    echo "$@" 1>&2
+    exit 1
+}
 
 # Download a `url` to the given file. A convenience wrapper around `curl` or
 # `wget`.
-function download_to {
+function download_to() {
     [[ $# -eq 2 ]] || "Usage: ${FUNCNAME[0]} filename url"
     local dest="$1" url="$2"
 
@@ -293,6 +305,6 @@ function download_to {
 
 # Only call the main function if this script was called as a command. This makes
 # it possible to source this script as a library.
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
     dispatch_subcommand "$@"
 fi
