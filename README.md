@@ -10,7 +10,8 @@
  ```shell
  $ git clone git@github.com/$user/$repo.git
  $ cd $repo
- $ fari.sh
+ $ fari.sh build
+ $ fari.sh run
  ```
 
 

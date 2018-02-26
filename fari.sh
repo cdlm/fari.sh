@@ -11,7 +11,8 @@
 # ```shell
 # $ git clone git@github.com/$user/$repo.git
 # $ cd $repo
-# $ fari.sh
+# $ fari.sh build
+# $ fari.sh run
 # ```
 #
 #
@@ -176,11 +177,16 @@ function fari_list() {
 
 # **Run** an existing image.
 function fari_run() {
-    [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} image"
-    local image="$1"
+    [[ $# -le 1 ]] || die "Usage: ${FUNCNAME[0]} [image]"
+    local image="${1:-}"
 
-    [ -e "${image}.image" ] || die "No such image: ${image}.image"
-    ${PHARO} "${image}.image"
+    # Similar logic as in `fari_build` to determine which image to launch.
+    : "${image:=$(fari_list | head -n1)}"
+    : "${image:=$PHARO_PROJECT}"
+
+    image=$(ls "$image".*.image)
+    [ -e "$image" ] || die "No such image: ${image}"
+    ${PHARO} "${image}"
 }
 
 # **Rename** or copy an image+changes file pair. Will not overwrite existing
