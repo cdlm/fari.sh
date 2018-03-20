@@ -275,11 +275,13 @@ function fari_prepare() {
     local sources="${base}.sources"
 
     # 64-bit images use source file named after 32-bit
-    if [[ ! -f ${sources} ]]; then
-        sources="${sources/-64bit-/-32bit-}"
-        [[ -f ${sources} ]] || die "Could not find the sources file for this image"
+    [[ -f ${sources} ]] || sources="${sources/-64bit-/-32bit-}"
+    if [[ -f ${sources} ]]; then
+        cp -f "${sources}" "$(dirname "$new")"
+    else
+        info "Could not find the sources file for this image"
     fi
-    cp -f "${sources}" "$(dirname "$new")"
+
     fari_rename --copy "$base" "$new"
     fari_load "$script" "$new"
 }
