@@ -88,6 +88,15 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+### Environment variables
+
+# Ensure environment variables have sensible values.
+: "${PHARO_PROJECT:=pharo}"
+: "${PHARO:=pharo-ui}"
+: "${PHARO_VERSION:=70}"
+: "${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}"}"
+: "${PHARO_IMAGE_FILE:=pharo.zip}"
+
 ### Invocation syntax
 
 # Fari makes each of the `fari_*` functions defined below available as
@@ -135,13 +144,6 @@ function dispatch_subcommand() {
 
 # **Build** all specified project images from a freshly downloaded base.
 function fari_build() {
-    # Ensure environment variables have sensible values.
-    : "${PHARO_PROJECT:=pharo}"
-    : "${PHARO:=pharo-ui}"
-    : "${PHARO_VERSION:=70}"
-    : "${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}"}"
-    : "${PHARO_IMAGE_FILE:=pharo.zip}"
-
     local fetched hash
     local -a images=("$@")
 
