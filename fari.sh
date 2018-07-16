@@ -229,7 +229,7 @@ function fari_backup() {
 
     # Look for images with any hash
     shopt -s nullglob
-    for image in ${name}.*.image; do
+    for image in "${name}".*.image; do
         image="${image%.image}"
         hash="${image##*.}"
         base="${image%.$hash}"
