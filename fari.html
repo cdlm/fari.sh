@@ -496,7 +496,7 @@ timestamp appended to their original basename.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-built_in">shopt</span> -s nullglob
-    <span class="hljs-keyword">for</span> image <span class="hljs-keyword">in</span> <span class="hljs-variable">${name}</span>.*.image; <span class="hljs-keyword">do</span>
+    <span class="hljs-keyword">for</span> image <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${name}</span>"</span>.*.image; <span class="hljs-keyword">do</span>
         image=<span class="hljs-string">"<span class="hljs-variable">${image%.image}</span>"</span>
         <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${image##*.}</span>"</span>
         base=<span class="hljs-string">"<span class="hljs-variable">${image%.$hash}</span>"</span>
