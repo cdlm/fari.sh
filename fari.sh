@@ -177,10 +177,15 @@ function fari_list() {
         | uniq
 }
 
-# **Run** an existing image.
+# **Run** an existing image. If present, the first argument always specifies the
+# image to run; use `--` for the implicit one. Subsequent arguments are passed
+# to the selected image.
 function fari_run() {
-    [[ $# -le 1 ]] || die "Usage: ${FUNCNAME[0]} [image]"
-    local image="${1:-}"
+    local image
+    [[ $# -ge 1 ]] && {
+        [[ "$1" != '--' ]] && image="${1}"
+        shift
+    }
 
     # Similar logic as in `fari_build` to determine which image to launch.
     : "${image:=$(fari_list | head -n1)}"
@@ -188,7 +193,7 @@ function fari_run() {
 
     image=$(ls "$image".*.image)
     [ -e "$image" ] || die "No such image: ${image}"
-    ${PHARO} "${image}"
+    ${PHARO} "${image}" "$@"
 }
 
 # **Rename** or copy an image+changes file pair. Will not overwrite existing
