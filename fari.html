@@ -381,13 +381,18 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
-              <p><strong>Run</strong> an existing image.</p>
+              <p><strong>Run</strong> an existing image. If present, the first argument always specifies the
+image to run; use <code>--</code> for the implicit one. Subsequent arguments are passed
+to the selected image.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_run</span></span>() {
-    [[ <span class="hljs-variable">$#</span> -le 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> [image]"</span>
-    <span class="hljs-built_in">local</span> image=<span class="hljs-string">"<span class="hljs-variable">${1:-}</span>"</span></pre></div></div>
+    <span class="hljs-built_in">local</span> image
+    [[ <span class="hljs-variable">$#</span> -ge 1 ]] &amp;&amp; {
+        [[ <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> != <span class="hljs-string">'--'</span> ]] &amp;&amp; image=<span class="hljs-string">"<span class="hljs-variable">${1}</span>"</span>
+        <span class="hljs-built_in">shift</span>
+    }</pre></div></div>
             
         </li>
         
@@ -407,7 +412,7 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
 
     image=$(ls <span class="hljs-string">"<span class="hljs-variable">$image</span>"</span>.*.image)
     [ -e <span class="hljs-string">"<span class="hljs-variable">$image</span>"</span> ] || die <span class="hljs-string">"No such image: <span class="hljs-variable">${image}</span>"</span>
-    <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span>
+    <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
 }</pre></div></div>
             
         </li>
