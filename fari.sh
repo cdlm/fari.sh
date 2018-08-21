@@ -106,7 +106,7 @@ IFS=$'\n\t'
 # For convenience, we accept alternate names for some of the subcommands;
 # running `fari` with no argument is equivalent to `fari build`.
 function dispatch_subcommand() {
-    local subcommand="${1:-build}"
+    local subcommand="${1:-run}"
     # If the command was specified, drop it from the arguments.
     [[ $# -ge 1 ]] && shift
 
@@ -180,8 +180,9 @@ function fari_list() {
 # **Run** an existing image. If present, the first argument always specifies the
 # image to run; use `--` for the implicit one. Subsequent arguments are passed
 # to the selected image.
+# If the image does not exist yet, attempt building it.
 function fari_run() {
-    local image
+    local image actual_image
     [[ $# -ge 1 ]] && {
         [[ "$1" != '--' ]] && image="${1}"
         shift
@@ -191,9 +192,13 @@ function fari_run() {
     : "${image:=$(fari_list | head -n1)}"
     : "${image:=$PHARO_PROJECT}"
 
-    image=$(ls "$image".*.image)
-    [ -e "$image" ] || die "No such image: ${image}"
-    ${PHARO} "${image}" "$@"
+
+    if actual_image=$(silently ls "$image".*.image) && [ -e "$actual_image" ]; then
+        ${PHARO} "${actual_image}" "$@"
+    else
+        info "No such image: ${image}, building it first..."
+        fari_build "${image}" && fari_run "${image}"
+    fi
 }
 
 # **Rename** or copy an image+changes file pair. Will not overwrite existing
