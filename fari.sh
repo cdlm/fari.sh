@@ -158,6 +158,7 @@ function fari_build() {
 
     # We build all specified images first…
     for project in "${images[@]}"; do
+        info "Preparing ${project}..."
         fari_delete "${project}_tmp"
         fari_prepare "$fetched" "$project" "${project}_tmp"
     done
@@ -166,6 +167,7 @@ function fari_build() {
     for project in "${images[@]}"; do
         fari_backup "${project}"
         fari_rename "${project}_tmp" "${project}.${hash}"
+        info "Installed ${project}.${hash}.image."
     done
 }
 
@@ -197,7 +199,7 @@ function fari_run() {
         ${PHARO} "${actual_image}" "$@"
     else
         info "No such image: ${image}, building it first..."
-        fari_build "${image}" && fari_run "${image}"
+        fari_build "${image}" && fari_run "${image}" "$@"
     fi
 }
 
@@ -243,6 +245,8 @@ function fari_backup() {
         image="${image%.image}"
         hash="${image##*.}"
         base="${image%.$hash}"
+
+        info "Backing up ${base} as ${base}_${backup_stamp}..."
         fari_rename "${image}" "${base}_${backup_stamp}.${hash}"
     done
 }
@@ -252,6 +256,7 @@ function fari_fetch() {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} url"
     local url="$1" downloaded tmp
 
+    info "Downloading fresh image from ${url}..."
     # Download & unzip everything in a temporary directory.
     tmp=$(mktemp -dt "pharo.XXXXXX")      #TODO clean up automatically
     download_to "${tmp}/image.zip" "$url" #TODO cache in a known place and continue?
@@ -274,6 +279,7 @@ function fari_load() {
 
     for script_file in "load.st" "${script}.load.st" "local.st" "${script}.local.st"; do
         if [[ -e $script_file ]]; then
+            info "Loading ${script_file} in ${image}..."
             ${PHARO} "${image}.image" st --save --quit "$script_file"
         fi
     done
