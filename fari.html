@@ -182,7 +182,7 @@ running <code>fari</code> with no argument is equivalent to <code>fari build</co
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">dispatch_subcommand</span></span>() {
-    <span class="hljs-built_in">local</span> subcommand=<span class="hljs-string">"<span class="hljs-variable">${1:-build}</span>"</span></pre></div></div>
+    <span class="hljs-built_in">local</span> subcommand=<span class="hljs-string">"<span class="hljs-variable">${1:-run}</span>"</span></pre></div></div>
             
         </li>
         
@@ -329,6 +329,7 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
+        info <span class="hljs-string">"Preparing <span class="hljs-variable">${project}</span>..."</span>
         fari_delete <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
         fari_prepare <span class="hljs-string">"<span class="hljs-variable">$fetched</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$project</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
     <span class="hljs-keyword">done</span></pre></div></div>
@@ -349,6 +350,7 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
         fari_backup <span class="hljs-string">"<span class="hljs-variable">${project}</span>"</span>
         fari_rename <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>.<span class="hljs-variable">${hash}</span>"</span>
+        info <span class="hljs-string">"Installed <span class="hljs-variable">${project}</span>.<span class="hljs-variable">${hash}</span>.image."</span>
     <span class="hljs-keyword">done</span>
 }</pre></div></div>
             
@@ -383,12 +385,13 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
               </div>
               <p><strong>Run</strong> an existing image. If present, the first argument always specifies the
 image to run; use <code>--</code> for the implicit one. Subsequent arguments are passed
-to the selected image.</p>
+to the selected image.
+If the image does not exist yet, attempt building it.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_run</span></span>() {
-    <span class="hljs-built_in">local</span> image
+    <span class="hljs-built_in">local</span> image actual_image
     [[ <span class="hljs-variable">$#</span> -ge 1 ]] &amp;&amp; {
         [[ <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> != <span class="hljs-string">'--'</span> ]] &amp;&amp; image=<span class="hljs-string">"<span class="hljs-variable">${1}</span>"</span>
         <span class="hljs-built_in">shift</span>
@@ -410,9 +413,13 @@ to the selected image.</p>
             <div class="content"><div class='highlight'><pre>    : <span class="hljs-string">"<span class="hljs-variable">${image:=$(fari_list | head -n1)}</span>"</span>
     : <span class="hljs-string">"<span class="hljs-variable">${image:=$PHARO_PROJECT}</span>"</span>
 
-    image=$(ls <span class="hljs-string">"<span class="hljs-variable">$image</span>"</span>.*.image)
-    [ -e <span class="hljs-string">"<span class="hljs-variable">$image</span>"</span> ] || die <span class="hljs-string">"No such image: <span class="hljs-variable">${image}</span>"</span>
-    <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
+
+    <span class="hljs-keyword">if</span> actual_image=$(silently ls <span class="hljs-string">"<span class="hljs-variable">$image</span>"</span>.*.image) &amp;&amp; [ -e <span class="hljs-string">"<span class="hljs-variable">$actual_image</span>"</span> ]; <span class="hljs-keyword">then</span>
+        <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${actual_image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
+    <span class="hljs-keyword">else</span>
+        info <span class="hljs-string">"No such image: <span class="hljs-variable">${image}</span>, building it first..."</span>
+        fari_build <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> &amp;&amp; fari_run <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
+    <span class="hljs-keyword">fi</span>
 }</pre></div></div>
             
         </li>
@@ -505,6 +512,8 @@ timestamp appended to their original basename.</p>
         image=<span class="hljs-string">"<span class="hljs-variable">${image%.image}</span>"</span>
         <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${image##*.}</span>"</span>
         base=<span class="hljs-string">"<span class="hljs-variable">${image%.$hash}</span>"</span>
+
+        info <span class="hljs-string">"Backing up <span class="hljs-variable">${base}</span> as <span class="hljs-variable">${base}</span>_<span class="hljs-variable">${backup_stamp}</span>..."</span>
         fari_rename <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${base}</span>_<span class="hljs-variable">${backup_stamp}</span>.<span class="hljs-variable">${hash}</span>"</span>
     <span class="hljs-keyword">done</span>
 }</pre></div></div>
@@ -524,7 +533,9 @@ timestamp appended to their original basename.</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_fetch</span></span>() {
     [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> url"</span>
-    <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> downloaded tmp</pre></div></div>
+    <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> downloaded tmp
+
+    info <span class="hljs-string">"Downloading fresh image from <span class="hljs-variable">${url}</span>..."</span></pre></div></div>
             
         </li>
         
@@ -584,6 +595,7 @@ minus extension.</p>
 
     <span class="hljs-keyword">for</span> script_file <span class="hljs-keyword">in</span> <span class="hljs-string">"load.st"</span> <span class="hljs-string">"<span class="hljs-variable">${script}</span>.load.st"</span> <span class="hljs-string">"local.st"</span> <span class="hljs-string">"<span class="hljs-variable">${script}</span>.local.st"</span>; <span class="hljs-keyword">do</span>
         <span class="hljs-keyword">if</span> [[ -e <span class="hljs-variable">$script_file</span> ]]; <span class="hljs-keyword">then</span>
+            info <span class="hljs-string">"Loading <span class="hljs-variable">${script_file}</span> in <span class="hljs-variable">${image}</span>..."</span>
             <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>.image"</span> st --save --quit <span class="hljs-string">"<span class="hljs-variable">$script_file</span>"</span>
         <span class="hljs-keyword">fi</span>
     <span class="hljs-keyword">done</span>
