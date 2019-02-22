@@ -279,7 +279,7 @@ based on their basename, or extensionless path.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_build</span></span>() {
-    <span class="hljs-built_in">local</span> fetched <span class="hljs-built_in">hash</span>
+    <span class="hljs-built_in">local</span> fetched base sources <span class="hljs-built_in">hash</span>
     <span class="hljs-built_in">local</span> -a images=(<span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>)</pre></div></div>
             
         </li>
@@ -308,12 +308,11 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
-              <p>Get base image, extract build hash.</p>
+              <p>Get base image.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    fetched=<span class="hljs-string">"<span class="hljs-variable">$(fari_fetch "${PHARO_FILES}/${PHARO_IMAGE_FILE}")</span>"</span>
-    <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${fetched##*-}</span>"</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    fetched=<span class="hljs-string">"<span class="hljs-variable">$(fari_fetch "${PHARO_FILES}/${PHARO_IMAGE_FILE}")</span>"</span></pre></div></div>
             
         </li>
         
@@ -324,15 +323,15 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
-              <p>We build all specified images first…</p>
+              <p>The filenames include the short hash of the commit they were generated
+from, which is not predictable from the URL. We find the image and sources
+files using <code>ls</code>, which will fail if any of the files is missing.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
-        info <span class="hljs-string">"Preparing <span class="hljs-variable">${project}</span>..."</span>
-        fari_delete <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
-        fari_prepare <span class="hljs-string">"<span class="hljs-variable">$fetched</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$project</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
-    <span class="hljs-keyword">done</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    sources=<span class="hljs-string">"<span class="hljs-variable">$(silently ls "${fetched}"/*.sources)</span>"</span>
+    base=<span class="hljs-string">"<span class="hljs-variable">$(silently ls "${fetched}"/*.image)</span>"</span>
+    base=<span class="hljs-string">"<span class="hljs-variable">${base%.image}</span>"</span></pre></div></div>
             
         </li>
         
@@ -342,6 +341,42 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Extract build hash.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${sources##*-}</span>"</span>
+    <span class="hljs-built_in">hash</span>=<span class="hljs-string">"<span class="hljs-variable">${hash%.sources}</span>"</span>
+    info <span class="hljs-string">"  version hash: <span class="hljs-variable">${hash}</span>"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>We build all specified images first…</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> project <span class="hljs-keyword">in</span> <span class="hljs-string">"<span class="hljs-variable">${images[@]}</span>"</span>; <span class="hljs-keyword">do</span>
+        info <span class="hljs-string">"Preparing <span class="hljs-variable">${project}</span>..."</span>
+        fari_delete <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
+        fari_prepare <span class="hljs-string">"<span class="hljs-variable">$base</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$sources</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$project</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${project}</span>_tmp"</span>
+    <span class="hljs-keyword">done</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
               <p>…and then back the old ones up, before moving the new ones in place.</p>
 
@@ -357,11 +392,11 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
         </li>
         
         
-        <li id="section-18">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p><strong>List</strong> basenames of load scripts found in the current directory.</p>
 
@@ -377,11 +412,11 @@ current directory, or default to <code>$PHARO_PROJECT</code>.</p>
         </li>
         
         
-        <li id="section-19">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p><strong>Run</strong> an existing image. If present, the first argument always specifies the
 image to run; use <code>--</code> for the implicit one. Subsequent arguments are passed
@@ -400,11 +435,11 @@ If the image does not exist yet, attempt building it.</p>
         </li>
         
         
-        <li id="section-20">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>Similar logic as in <code>fari_build</code> to determine which image to launch.</p>
 
@@ -425,11 +460,11 @@ If the image does not exist yet, attempt building it.</p>
         </li>
         
         
-        <li id="section-21">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <p><strong>Rename</strong> or copy an image+changes file pair. Will not overwrite existing
 files.</p>
@@ -456,11 +491,11 @@ files.</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p><strong>Delete</strong> image+changes file pairs.</p>
 
@@ -478,11 +513,11 @@ files.</p>
         </li>
         
         
-        <li id="section-23">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p><strong>Backup</strong> an image+changes file pair. Backups have a <code>backup-YYYMMDD</code>
 timestamp appended to their original basename.</p>
@@ -497,11 +532,11 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-24">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p>Look for images with any hash</p>
 
@@ -521,59 +556,20 @@ timestamp appended to their original basename.</p>
         </li>
         
         
-        <li id="section-25">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
-              </div>
-              <p><strong>Fetch</strong> a zip archive containing image, changes, and sources files.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_fetch</span></span>() {
-    [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> url"</span>
-    <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> downloaded tmp
-
-    info <span class="hljs-string">"Downloading fresh image from <span class="hljs-variable">${url}</span>..."</span></pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-26">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
-              </div>
-              <p>Download &amp; unzip everything in a temporary directory.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    tmp=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>)      <span class="hljs-comment">#TODO clean up automatically</span>
-    download_to <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> <span class="hljs-string">"<span class="hljs-variable">$url</span>"</span> <span class="hljs-comment">#TODO cache in a known place and continue?</span>
-    unzip -q <span class="hljs-string">"<span class="hljs-variable">${tmp}</span>/image.zip"</span> -d <span class="hljs-string">"<span class="hljs-variable">$tmp</span>"</span></pre></div></div>
-            
-        </li>
-        
-        
         <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
-              <p>The filenames include the short hash of the commit they were generated
-from, which is not predictable from the URL. We find and check that the
-file does exist (<code>ls</code> will fail otherwise), then return its full path,
-minus extension.</p>
+              <p><strong>Fetch</strong> a zip archive containing image, changes, and sources files.
+Unzip the files, and return the path to the directory containing them.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    downloaded=<span class="hljs-string">"<span class="hljs-variable">$(ls "${tmp}"/*.image)</span>"</span>
-    downloaded=<span class="hljs-string">"<span class="hljs-variable">${downloaded%.image}</span>"</span>
-    <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$downloaded</span>"</span>
-}</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_fetch</span></span>() {
+    [[ <span class="hljs-variable">$#</span> -eq 1 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> url"</span>
+    <span class="hljs-built_in">local</span> url=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> download_dir</pre></div></div>
             
         </li>
         
@@ -583,6 +579,28 @@ minus extension.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Download &amp; unzip everything in a temporary directory.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    download_dir=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>)      <span class="hljs-comment">#TODO clean up automatically</span>
+    info <span class="hljs-string">"Downloading from <span class="hljs-variable">${url}</span>..."</span>
+    info <span class="hljs-string">"  → <span class="hljs-variable">${download_dir}</span>"</span>
+    download_to <span class="hljs-string">"<span class="hljs-variable">${download_dir}</span>/image.zip"</span> <span class="hljs-string">"<span class="hljs-variable">$url</span>"</span> <span class="hljs-comment">#TODO cache in a known place and continue?</span>
+    unzip -q <span class="hljs-string">"<span class="hljs-variable">${download_dir}</span>/image.zip"</span> -d <span class="hljs-string">"<span class="hljs-variable">$download_dir</span>"</span>
+
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$download_dir</span>"</span>
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
               <p><strong>Load</strong> project code by running any available load scripts pertaining to the
 <code>script</code> shortname, modifying the given <code>image</code> in place.</p>
@@ -604,41 +622,22 @@ minus extension.</p>
         </li>
         
         
-        <li id="section-29">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
-              </div>
-              <p><strong>Prepare</strong> a <code>new</code> image, starting from the given <code>base</code>, loading project
-<code>script</code>s.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_prepare</span></span>() {
-    [[ <span class="hljs-variable">$#</span> -eq 3 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> base script new"</span>
-    <span class="hljs-built_in">local</span> base=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> script=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span> new=<span class="hljs-string">"<span class="hljs-variable">$3</span>"</span>
-    <span class="hljs-built_in">local</span> sources=<span class="hljs-string">"<span class="hljs-variable">${base}</span>.sources"</span></pre></div></div>
-            
-        </li>
-        
-        
         <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
-              <p>64-bit images use source file named after 32-bit</p>
+              <p><strong>Prepare</strong> a <code>new</code> image, starting from the given <code>base</code> image &amp; changes, and
+<code>sources</code> files, loading project <code>script</code>s.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    [[ -f <span class="hljs-variable">${sources}</span> ]] || sources=<span class="hljs-string">"<span class="hljs-variable">${sources/-64bit-/-32bit-}</span>"</span>
-    <span class="hljs-keyword">if</span> [[ -f <span class="hljs-variable">${sources}</span> ]]; <span class="hljs-keyword">then</span>
-        cp -f <span class="hljs-string">"<span class="hljs-variable">${sources}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$(dirname "$new")</span>"</span>
-    <span class="hljs-keyword">else</span>
-        info <span class="hljs-string">"Could not find the sources file for this image"</span>
-    <span class="hljs-keyword">fi</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_prepare</span></span>() {
+    [[ <span class="hljs-variable">$#</span> -eq 4 ]] || die <span class="hljs-string">"Usage: <span class="hljs-variable">${FUNCNAME[0]}</span> base sources script new"</span>
+    <span class="hljs-built_in">local</span> base=<span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> sources=<span class="hljs-string">"<span class="hljs-variable">$2</span>"</span> script=<span class="hljs-string">"<span class="hljs-variable">$3</span>"</span> new=<span class="hljs-string">"<span class="hljs-variable">$4</span>"</span>
+
+    cp -f <span class="hljs-string">"<span class="hljs-variable">${sources}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$(dirname "$new")</span>"</span>
 
     fari_rename --copy <span class="hljs-string">"<span class="hljs-variable">$base</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
     fari_load <span class="hljs-string">"<span class="hljs-variable">$script</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$new</span>"</span>
@@ -735,7 +734,7 @@ minus extension.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
-              <h2 id="launch-time-">Launch time!</h2>
+              <h2 id="launch-time">Launch time!</h2>
 
             </div>
             
