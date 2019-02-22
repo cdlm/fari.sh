@@ -293,6 +293,8 @@ based on their basename, or extensionless path.</p>
               </div>
               <p>With no argument, we build one image per uniquely named load script in the
 current directory, or default to <code>$PHARO_PROJECT</code>.</p>
+<p>SC2207 is fixable in bash 4 but not bash 3 (macOS)
+shellcheck disable=SC2207</p>
 
             </div>
             
@@ -428,7 +430,7 @@ If the image does not exist yet, attempt building it.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_run</span></span>() {
     <span class="hljs-built_in">local</span> image actual_image
     [[ <span class="hljs-variable">$#</span> -ge 1 ]] &amp;&amp; {
-        [[ <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> != <span class="hljs-string">'--'</span> ]] &amp;&amp; image=<span class="hljs-string">"<span class="hljs-variable">${1}</span>"</span>
+        [[ <span class="hljs-variable">$1</span> != <span class="hljs-string">'--'</span> ]] &amp;&amp; image=<span class="hljs-string">"<span class="hljs-variable">${1}</span>"</span>
         <span class="hljs-built_in">shift</span>
     }</pre></div></div>
             
@@ -447,7 +449,6 @@ If the image does not exist yet, attempt building it.</p>
             
             <div class="content"><div class='highlight'><pre>    : <span class="hljs-string">"<span class="hljs-variable">${image:=$(fari_list | head -n1)}</span>"</span>
     : <span class="hljs-string">"<span class="hljs-variable">${image:=$PHARO_PROJECT}</span>"</span>
-
 
     <span class="hljs-keyword">if</span> actual_image=$(silently ls <span class="hljs-string">"<span class="hljs-variable">$image</span>"</span>.*.image) &amp;&amp; [ -e <span class="hljs-string">"<span class="hljs-variable">$actual_image</span>"</span> ]; <span class="hljs-keyword">then</span>
         <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${actual_image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
@@ -584,7 +585,7 @@ Unzip the files, and return the path to the directory containing them.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    download_dir=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>)      <span class="hljs-comment">#TODO clean up automatically</span>
+            <div class="content"><div class='highlight'><pre>    download_dir=$(mktemp -dt <span class="hljs-string">"pharo.XXXXXX"</span>) <span class="hljs-comment">#TODO clean up automatically</span>
     info <span class="hljs-string">"Downloading from <span class="hljs-variable">${url}</span>..."</span>
     info <span class="hljs-string">"  → <span class="hljs-variable">${download_dir}</span>"</span>
     download_to <span class="hljs-string">"<span class="hljs-variable">${download_dir}</span>/image.zip"</span> <span class="hljs-string">"<span class="hljs-variable">$url</span>"</span> <span class="hljs-comment">#TODO cache in a known place and continue?</span>
