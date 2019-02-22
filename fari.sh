@@ -144,7 +144,7 @@ function dispatch_subcommand() {
 
 # **Build** all specified project images from a freshly downloaded base.
 function fari_build() {
-    local fetched hash
+    local fetched base sources hash
     local -a images=("$@")
 
     # With no argument, we build one image per uniquely named load script in the
@@ -152,15 +152,26 @@ function fari_build() {
     [[ ${#images[@]} -eq 0 ]] && images=($(fari_list))
     [[ ${#images[@]} -eq 0 ]] && images=("$PHARO_PROJECT")
 
-    # Get base image, extract build hash.
+    # Get base image.
     fetched="$(fari_fetch "${PHARO_FILES}/${PHARO_IMAGE_FILE}")"
-    hash="${fetched##*-}"
+
+    # The filenames include the short hash of the commit they were generated
+    # from, which is not predictable from the URL. We find the image and sources
+    # files using `ls`, which will fail if any of the files is missing.
+    sources="$(silently ls "${fetched}"/*.sources)"
+    base="$(silently ls "${fetched}"/*.image)"
+    base="${base%.image}"
+
+    # Extract build hash.
+    hash="${sources##*-}"
+    hash="${hash%.sources}"
+    info "  version hash: ${hash}"
 
     # We build all specified images first…
     for project in "${images[@]}"; do
         info "Preparing ${project}..."
         fari_delete "${project}_tmp"
-        fari_prepare "$fetched" "$project" "${project}_tmp"
+        fari_prepare "$base" "$sources" "$project" "${project}_tmp"
     done
 
     # …and then back the old ones up, before moving the new ones in place.
@@ -252,23 +263,19 @@ function fari_backup() {
 }
 
 # **Fetch** a zip archive containing image, changes, and sources files.
+# Unzip the files, and return the path to the directory containing them.
 function fari_fetch() {
     [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} url"
-    local url="$1" downloaded tmp
+    local url="$1" download_dir
 
-    info "Downloading fresh image from ${url}..."
     # Download & unzip everything in a temporary directory.
-    tmp=$(mktemp -dt "pharo.XXXXXX")      #TODO clean up automatically
-    download_to "${tmp}/image.zip" "$url" #TODO cache in a known place and continue?
-    unzip -q "${tmp}/image.zip" -d "$tmp"
+    download_dir=$(mktemp -dt "pharo.XXXXXX")      #TODO clean up automatically
+    info "Downloading from ${url}..."
+    info "  → ${download_dir}"
+    download_to "${download_dir}/image.zip" "$url" #TODO cache in a known place and continue?
+    unzip -q "${download_dir}/image.zip" -d "$download_dir"
 
-    # The filenames include the short hash of the commit they were generated
-    # from, which is not predictable from the URL. We find and check that the
-    # file does exist (`ls` will fail otherwise), then return its full path,
-    # minus extension.
-    downloaded="$(ls "${tmp}"/*.image)"
-    downloaded="${downloaded%.image}"
-    echo "$downloaded"
+    echo "$download_dir"
 }
 
 # **Load** project code by running any available load scripts pertaining to the
@@ -285,20 +292,13 @@ function fari_load() {
     done
 }
 
-# **Prepare** a `new` image, starting from the given `base`, loading project
-# `script`s.
+# **Prepare** a `new` image, starting from the given `base` image & changes, and
+# `sources` files, loading project `script`s.
 function fari_prepare() {
-    [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0]} base script new"
-    local base="$1" script="$2" new="$3"
-    local sources="${base}.sources"
+    [[ $# -eq 4 ]] || die "Usage: ${FUNCNAME[0]} base sources script new"
+    local base="$1" sources="$2" script="$3" new="$4"
 
-    # 64-bit images use source file named after 32-bit
-    [[ -f ${sources} ]] || sources="${sources/-64bit-/-32bit-}"
-    if [[ -f ${sources} ]]; then
-        cp -f "${sources}" "$(dirname "$new")"
-    else
-        info "Could not find the sources file for this image"
-    fi
+    cp -f "${sources}" "$(dirname "$new")"
 
     fari_rename --copy "$base" "$new"
     fari_load "$script" "$new"
