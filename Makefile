@@ -2,8 +2,7 @@
 
 all: README.md docs/fari.html
 
-# SC2207 is fixable in bash 4 but not bash 3 (macOS)
-SHELLCHECK_OPTIONS = --color=always --shell=bash --exclude=SC2207
+SHELLCHECK_OPTIONS = --color=always --shell=bash
 SHFMT_OPTIONS = -ln bash -i 4 -ci -bn -s
 
 check: fari.sh

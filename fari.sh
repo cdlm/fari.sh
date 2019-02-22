@@ -149,6 +149,9 @@ function fari_build() {
 
     # With no argument, we build one image per uniquely named load script in the
     # current directory, or default to `$PHARO_PROJECT`.
+    #
+    # Fixable in bash 4 but not bash 3 (macOS):
+    # shellcheck disable=SC2207
     [[ ${#images[@]} -eq 0 ]] && images=($(fari_list))
     [[ ${#images[@]} -eq 0 ]] && images=("$PHARO_PROJECT")
 
@@ -197,14 +200,13 @@ function fari_list() {
 function fari_run() {
     local image actual_image
     [[ $# -ge 1 ]] && {
-        [[ "$1" != '--' ]] && image="${1}"
+        [[ $1 != '--' ]] && image="${1}"
         shift
     }
 
     # Similar logic as in `fari_build` to determine which image to launch.
     : "${image:=$(fari_list | head -n1)}"
     : "${image:=$PHARO_PROJECT}"
-
 
     if actual_image=$(silently ls "$image".*.image) && [ -e "$actual_image" ]; then
         ${PHARO} "${actual_image}" "$@"
@@ -269,7 +271,7 @@ function fari_fetch() {
     local url="$1" download_dir
 
     # Download & unzip everything in a temporary directory.
-    download_dir=$(mktemp -dt "pharo.XXXXXX")      #TODO clean up automatically
+    download_dir=$(mktemp -dt "pharo.XXXXXX") #TODO clean up automatically
     info "Downloading from ${url}..."
     info "  → ${download_dir}"
     download_to "${download_dir}/image.zip" "$url" #TODO cache in a known place and continue?
