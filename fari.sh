@@ -92,10 +92,10 @@ IFS=$'\n\t'
 
 # Ensure environment variables have sensible values.
 : "${PHARO_PROJECT:=pharo}"
-: "${PHARO:=pharo-ui}"
-: "${PHARO_VERSION:=70}"
+: "${PHARO:=pharo}"
+: "${PHARO_VERSION:=80}"
 : "${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}"}"
-: "${PHARO_IMAGE_FILE:=pharo.zip}"
+: "${PHARO_IMAGE_FILE:=pharo64.zip}"
 
 ### Invocation syntax
 
