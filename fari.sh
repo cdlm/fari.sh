@@ -55,12 +55,12 @@
 # `PHARO_PROJECT`: image name used in the absence of a named load script;
 # defaults to `pharo`.
 #
-# `PHARO`: name of the Pharo VM command-line executable. Defaults to `pharo-ui`,
+# `PHARO`: name of the Pharo VM command-line executable. Defaults to `pharo`,
 # assuming that you have it in your `$PATH`. If you get your VMs from
-# [get.pharo.org][], set it to `./pharo-ui`.
+# [get.pharo.org][], set it to `./pharo`.
 #
 # `PHARO_VERSION`: Pharo release, as used in the [get.pharo.org][] URLs;
-# defaults to `70`.
+# defaults to `80`.
 #
 # `PHARO_FILES`: URL prefix for downloading the image; defaults to
 # `http://files.pharo.org/get-files/${PHARO_VERSION}`.
@@ -193,26 +193,44 @@ function fari_list() {
         | uniq
 }
 
-# **Run** an existing image. If present, the first argument always specifies the
-# image to run; use `--` for the implicit one. Subsequent arguments are passed
-# to the selected image.
-# If the image does not exist yet, attempt building it.
+# **Run** an existing image. If the image does not exist yet, attempt building
+# it. The first positional argument specifies the image to run; use `--` instead
+# to designate the implicit image. Arguments following the image name are passed
+# to the image. For interative use, either pass `--interactive` before the image
+# name, or change the `$PHARO` environment variable.
 function fari_run() {
-    local image actual_image
-    [[ $# -ge 1 ]] && {
-        [[ $1 != '--' ]] && image="${1}"
-        shift
-    }
+    local image actual_image interactive
+
+    while [[ $# -ge 1 ]]; do
+        case "$1" in
+            -i | --interactive | --gui)
+                interactive="--interactive"
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            -*)
+                die "Error: unknown option ${1}"
+                ;;
+            *)
+                image="${1}"
+                shift
+                break
+                ;;
+        esac
+    done
 
     # Similar logic as in `fari_build` to determine which image to launch.
     : "${image:=$(fari_list | head -n1)}"
     : "${image:=$PHARO_PROJECT}"
 
     if actual_image=$(silently ls "$image".*.image) && [ -e "$actual_image" ]; then
-        ${PHARO} "${actual_image}" "$@"
+        ${PHARO} "${actual_image}" "$interactive" "$@"
     else
         info "No such image: ${image}, building it first..."
-        fari_build "${image}" && fari_run "${image}" "$@"
+        fari_build "${image}" && fari_run "$interactive" "${image}" "$@"
     fi
 }
 
