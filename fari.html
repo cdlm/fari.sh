@@ -71,11 +71,11 @@ account. We recommend <a href="https://direnv.net">direnv</a> to make any settin
 project-specific.</p>
 <p><code>PHARO_PROJECT</code>: image name used in the absence of a named load script;
 defaults to <code>pharo</code>.</p>
-<p><code>PHARO</code>: name of the Pharo VM command-line executable. Defaults to <code>pharo-ui</code>,
+<p><code>PHARO</code>: name of the Pharo VM command-line executable. Defaults to <code>pharo</code>,
 assuming that you have it in your <code>$PATH</code>. If you get your VMs from
-<a href="http://get.pharo.org">get.pharo.org</a>, set it to <code>./pharo-ui</code>.</p>
+<a href="http://get.pharo.org">get.pharo.org</a>, set it to <code>./pharo</code>.</p>
 <p><code>PHARO_VERSION</code>: Pharo release, as used in the <a href="http://get.pharo.org">get.pharo.org</a> URLs;
-defaults to <code>70</code>.</p>
+defaults to <code>80</code>.</p>
 <p><code>PHARO_FILES</code>: URL prefix for downloading the image; defaults to
 <code>http://files.pharo.org/get-files/${PHARO_VERSION}</code>.</p>
 <p><code>PHARO_IMAGE_FILE</code>: Name of the image distribution file to download; defaults
@@ -144,10 +144,10 @@ IFS=$<span class="hljs-string">'\n\t'</span></pre></div></div>
             </div>
             
             <div class="content"><div class='highlight'><pre>: <span class="hljs-string">"<span class="hljs-variable">${PHARO_PROJECT:=pharo}</span>"</span>
-: <span class="hljs-string">"<span class="hljs-variable">${PHARO:=pharo-ui}</span>"</span>
-: <span class="hljs-string">"<span class="hljs-variable">${PHARO_VERSION:=70}</span>"</span>
+: <span class="hljs-string">"<span class="hljs-variable">${PHARO:=pharo}</span>"</span>
+: <span class="hljs-string">"<span class="hljs-variable">${PHARO_VERSION:=80}</span>"</span>
 : <span class="hljs-string">"<span class="hljs-variable">${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}</span>"</span>}<span class="hljs-string">"
-: "</span><span class="hljs-variable">${PHARO_IMAGE_FILE:=pharo.zip}</span><span class="hljs-string">"
+: "</span><span class="hljs-variable">${PHARO_IMAGE_FILE:=pharo64.zip}</span><span class="hljs-string">"
 
 </span></pre></div></div>
             
@@ -420,19 +420,37 @@ files using <code>ls</code>, which will fail if any of the files is missing.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
-              <p><strong>Run</strong> an existing image. If present, the first argument always specifies the
-image to run; use <code>--</code> for the implicit one. Subsequent arguments are passed
-to the selected image.
-If the image does not exist yet, attempt building it.</p>
+              <p><strong>Run</strong> an existing image. If the image does not exist yet, attempt building
+it. The first positional argument specifies the image to run; use <code>--</code> instead
+to designate the implicit image. Arguments following the image name are passed
+to the image. For interative use, either pass <code>--interactive</code> before the image
+name, or change the <code>$PHARO</code> environment variable.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">fari_run</span></span>() {
-    <span class="hljs-built_in">local</span> image actual_image
-    [[ <span class="hljs-variable">$#</span> -ge 1 ]] &amp;&amp; {
-        [[ <span class="hljs-variable">$1</span> != <span class="hljs-string">'--'</span> ]] &amp;&amp; image=<span class="hljs-string">"<span class="hljs-variable">${1}</span>"</span>
-        <span class="hljs-built_in">shift</span>
-    }</pre></div></div>
+    <span class="hljs-built_in">local</span> image actual_image interactive
+
+    <span class="hljs-keyword">while</span> [[ <span class="hljs-variable">$#</span> -ge 1 ]]; <span class="hljs-keyword">do</span>
+        <span class="hljs-keyword">case</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> <span class="hljs-keyword">in</span>
+            -i | --interactive | --gui)
+                interactive=<span class="hljs-string">"--interactive"</span>
+                <span class="hljs-built_in">shift</span>
+                ;;
+            --)
+                <span class="hljs-built_in">shift</span>
+                <span class="hljs-built_in">break</span>
+                ;;
+            -*)
+                die <span class="hljs-string">"Error: unknown option <span class="hljs-variable">${1}</span>"</span>
+                ;;
+            *)
+                image=<span class="hljs-string">"<span class="hljs-variable">${1}</span>"</span>
+                <span class="hljs-built_in">shift</span>
+                <span class="hljs-built_in">break</span>
+                ;;
+        <span class="hljs-keyword">esac</span>
+    <span class="hljs-keyword">done</span></pre></div></div>
             
         </li>
         
@@ -451,10 +469,10 @@ If the image does not exist yet, attempt building it.</p>
     : <span class="hljs-string">"<span class="hljs-variable">${image:=$PHARO_PROJECT}</span>"</span>
 
     <span class="hljs-keyword">if</span> actual_image=$(silently ls <span class="hljs-string">"<span class="hljs-variable">$image</span>"</span>.*.image) &amp;&amp; [ -e <span class="hljs-string">"<span class="hljs-variable">$actual_image</span>"</span> ]; <span class="hljs-keyword">then</span>
-        <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${actual_image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
+        <span class="hljs-variable">${PHARO}</span> <span class="hljs-string">"<span class="hljs-variable">${actual_image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$interactive</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
     <span class="hljs-keyword">else</span>
         info <span class="hljs-string">"No such image: <span class="hljs-variable">${image}</span>, building it first..."</span>
-        fari_build <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> &amp;&amp; fari_run <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
+        fari_build <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> &amp;&amp; fari_run <span class="hljs-string">"<span class="hljs-variable">$interactive</span>"</span> <span class="hljs-string">"<span class="hljs-variable">${image}</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$@</span>"</span>
     <span class="hljs-keyword">fi</span>
 }</pre></div></div>
             
