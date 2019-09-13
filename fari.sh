@@ -104,9 +104,9 @@ IFS=$'\n\t'
 # function, passing `foo` along as the name of the image to build.
 #
 # For convenience, we accept alternate names for some of the subcommands;
-# running `fari` with no argument is equivalent to `fari build`.
+# running `fari` with no argument is equivalent to `fari open`.
 function dispatch_subcommand() {
-    local subcommand="${1:-run}"
+    local subcommand="${1:-open}"
     # If the command was specified, drop it from the arguments.
     [[ $# -ge 1 ]] && shift
 
@@ -115,6 +115,9 @@ function dispatch_subcommand() {
     case "$subcommand" in
         build | fetch | backup | load | prepare | run)
             actual=("fari_$subcommand")
+            ;;
+        open)
+            actual=('fari_run' '--interactive')
             ;;
         list | ls)
             actual=('fari_list')
@@ -193,11 +196,12 @@ function fari_list() {
         | uniq
 }
 
-# **Run** an existing image. If the image does not exist yet, attempt building
-# it. The first positional argument specifies the image to run; use `--` instead
-# to designate the implicit image. Arguments following the image name are passed
-# to the image. For interative use, either pass `--interactive` before the image
-# name, or change the `$PHARO` environment variable.
+# **Run** or **open** an existing image. If the image does not exist yet,
+# attempt building it. The first positional argument specifies the image to run;
+# use `--` instead to designate the implicit image. Arguments following the
+# image name are passed to the image. To start the image in graphical mode, pass
+# `--interactive` before the image name, use the `fari open` alias, or change
+# the `$PHARO` environment variable.
 function fari_run() {
     local image actual_image interactive
 
