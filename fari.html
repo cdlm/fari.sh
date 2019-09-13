@@ -177,12 +177,12 @@ IFS=$<span class="hljs-string">'\n\t'</span></pre></div></div>
 subcommands. For instance, <code>fari build foo</code> would invoke the <code>fari_build</code>
 function, passing <code>foo</code> along as the name of the image to build.</p>
 <p>For convenience, we accept alternate names for some of the subcommands;
-running <code>fari</code> with no argument is equivalent to <code>fari build</code>.</p>
+running <code>fari</code> with no argument is equivalent to <code>fari open</code>.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">function</span> <span class="hljs-function"><span class="hljs-title">dispatch_subcommand</span></span>() {
-    <span class="hljs-built_in">local</span> subcommand=<span class="hljs-string">"<span class="hljs-variable">${1:-run}</span>"</span></pre></div></div>
+    <span class="hljs-built_in">local</span> subcommand=<span class="hljs-string">"<span class="hljs-variable">${1:-open}</span>"</span></pre></div></div>
             
         </li>
         
@@ -216,6 +216,9 @@ running <code>fari</code> with no argument is equivalent to <code>fari build</co
     <span class="hljs-keyword">case</span> <span class="hljs-string">"<span class="hljs-variable">$subcommand</span>"</span> <span class="hljs-keyword">in</span>
         build | fetch | backup | load | prepare | run)
             actual=(<span class="hljs-string">"fari_<span class="hljs-variable">$subcommand</span>"</span>)
+            ;;
+        open)
+            actual=(<span class="hljs-string">'fari_run'</span> <span class="hljs-string">'--interactive'</span>)
             ;;
         list | ls)
             actual=(<span class="hljs-string">'fari_list'</span>)
@@ -420,11 +423,12 @@ files using <code>ls</code>, which will fail if any of the files is missing.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
-              <p><strong>Run</strong> an existing image. If the image does not exist yet, attempt building
-it. The first positional argument specifies the image to run; use <code>--</code> instead
-to designate the implicit image. Arguments following the image name are passed
-to the image. For interative use, either pass <code>--interactive</code> before the image
-name, or change the <code>$PHARO</code> environment variable.</p>
+              <p><strong>Run</strong> or <strong>open</strong> an existing image. If the image does not exist yet,
+attempt building it. The first positional argument specifies the image to run;
+use <code>--</code> instead to designate the implicit image. Arguments following the
+image name are passed to the image. To start the image in graphical mode, pass
+<code>--interactive</code> before the image name, use the <code>fari open</code> alias, or change
+the <code>$PHARO</code> environment variable.</p>
 
             </div>
             
