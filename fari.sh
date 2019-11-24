@@ -84,8 +84,9 @@
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 # Now let's start. First & foremost, we toggle [bash strict
-# mode](http://redsymbol.net/articles/unofficial-bash-strict-mode/).
+# mode](https://disconnected.systems/blog/another-bash-strict-mode/).
 set -euo pipefail
+trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 IFS=$'\n\t'
 
 ### Environment variables
