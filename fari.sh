@@ -66,7 +66,7 @@
 # `http://files.pharo.org/get-files/${PHARO_VERSION}`.
 #
 # `PHARO_IMAGE_FILE`: Name of the image distribution file to download; defaults
-# to `pharo.zip` but would be `pharo64.zip` for 64-bit images.
+# to `pharo64.zip` but would be `pharo.zip` for 32-bit images.
 #
 ## License
 #
