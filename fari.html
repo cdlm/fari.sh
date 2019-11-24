@@ -79,7 +79,7 @@ defaults to <code>80</code>.</p>
 <p><code>PHARO_FILES</code>: URL prefix for downloading the image; defaults to
 <code>http://files.pharo.org/get-files/${PHARO_VERSION}</code>.</p>
 <p><code>PHARO_IMAGE_FILE</code>: Name of the image distribution file to download; defaults
-to <code>pharo.zip</code> but would be <code>pharo64.zip</code> for 64-bit images.</p>
+to <code>pharo64.zip</code> but would be <code>pharo.zip</code> for 32-bit images.</p>
 <h1 id="license">License</h1>
 <p>The <a href="https://github.com/cdlm/fari.sh">Fari source</a> is available on Github, and is released under the
 <a href="http://opensource.org/licenses/MIT">MIT license</a>. See the <a href="http://ashkenas.com/docco">Docco</a> generated docs for more information:
@@ -109,12 +109,13 @@ to <code>pharo.zip</code> but would be <code>pharo64.zip</code> for 64-bit image
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>Now let’s start. First &amp; foremost, we toggle <a href="http://redsymbol.net/articles/unofficial-bash-strict-mode/">bash strict
+              <p>Now let’s start. First &amp; foremost, we toggle <a href="https://disconnected.systems/blog/another-bash-strict-mode/">bash strict
 mode</a>.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-built_in">set</span> -euo pipefail
+<span class="hljs-built_in">trap</span> <span class="hljs-string">'s=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s'</span> ERR
 IFS=$<span class="hljs-string">'\n\t'</span></pre></div></div>
             
         </li>
