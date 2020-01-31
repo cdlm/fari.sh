@@ -68,7 +68,7 @@
 # `PHARO_IMAGE_FILE`: Name of the image distribution file to download; defaults
 # to `pharo64.zip` but would be `pharo.zip` for 32-bit images.
 #
-## License
+# # License
 #
 # The [Fari source][github] is available on Github, and is released under the
 # [MIT license][mit]. See the [Docco][] generated docs for more information:

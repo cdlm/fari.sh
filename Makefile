@@ -19,7 +19,7 @@ pushdocs: all
 	git -C docs push
 
 README.md: fari.sh
-	sed -n '/^\s*$$/q; /^#!/d; s/^#//p' < $< > $@
+	sed -En '/^[[:space:]]*$$/q; /^#!/d; s/^#[[:space:]]{0,1}//p' < $< > $@
 
 docs/fari.html: fari.sh
 	git worktree prune
