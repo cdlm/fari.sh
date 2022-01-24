@@ -86,7 +86,6 @@
 # Now let's start. First & foremost, we toggle [bash strict
 # mode](https://disconnected.systems/blog/another-bash-strict-mode/).
 set -euo pipefail
-trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 IFS=$'\n\t'
 
 ### Environment variables
@@ -97,6 +96,44 @@ IFS=$'\n\t'
 : "${PHARO_VERSION:=90}"
 : "${PHARO_FILES:="http://files.pharo.org/get-files/${PHARO_VERSION}"}"
 : "${PHARO_IMAGE_FILE:=pharo64.zip}"
+
+### Shell utilities
+
+# Abort execution with an error message.
+function die() {
+    local status="${1}"
+    [[ "$status" =~ ^[0-9]+ ]] && shift || status=1
+    [[ "$status" -eq 0 ]] && return
+
+    local message
+    if [[ $# -ge 2 ]]; then
+        local line="$1" command="$2"
+        message="$0: Error on line $line: $command"
+    else
+        message="${1:-"Error $status"}"
+    fi
+    echo "$message" 1>&2
+    trap : EXIT
+    exit "$status"
+}
+
+# Register `die` as the error handler.
+trap 'die $? $LINENO "$BASH_COMMAND"' EXIT
+
+# Silence output of a command.
+function silently() { "$@" 2>/dev/null; }
+
+# Display progress message.
+function info() { echo "$@" 1>&2; }
+
+# Download a `url` to the given file. A convenience wrapper around `curl` or
+# `wget`.
+function download_to() {
+    [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} filename url"
+    local dest="$1" url="$2"
+
+    curl --silent --location --compressed --output "$dest" "$url" #TODO the same with wget
+}
 
 ### Invocation syntax
 
@@ -234,7 +271,7 @@ function fari_run() {
 
     if actual_image=$(silently ls "$image".*.image) && [ -e "$actual_image" ]; then
         info "${PHARO} ${actual_image} ${interactive[@]} $@"
-        ${PHARO} "${actual_image}" "${interactive[@]}" "$@"
+        exec ${PHARO} "${actual_image}" "${interactive[@]}" "$@"
     else
         info "No such image: ${image}, building it first..."
         fari_build "${image}" && fari_run "${interactive[@]}" "${image}" "$@"
@@ -329,29 +366,6 @@ function fari_prepare() {
 
     fari_rename --copy "$base" "$new"
     fari_load "$script" "$new"
-}
-
-### Shell utilities
-
-# Silence output of a command.
-function silently() { "$@" 2>/dev/null; }
-
-# Display progress message.
-function info() { echo "$@" 1>&2; }
-
-# Abort execution with an error message and non-zero status.
-function die() {
-    echo "$@" 1>&2
-    exit 1
-}
-
-# Download a `url` to the given file. A convenience wrapper around `curl` or
-# `wget`.
-function download_to() {
-    [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} filename url"
-    local dest="$1" url="$2"
-
-    curl --silent --location --compressed --output "$dest" "$url" #TODO the same with wget
 }
 
 ### Launch time!
