@@ -210,7 +210,7 @@ function fari_run() {
     while [[ $# -ge 1 ]]; do
         case "$1" in
             -i | --interactive | --gui)
-                interactive=( "--interactive" )
+                interactive=("--interactive")
                 shift
                 ;;
             --)
