@@ -204,12 +204,13 @@ function fari_list() {
 # `--interactive` before the image name, use the `fari open` alias, or change
 # the `$PHARO` environment variable.
 function fari_run() {
-    local image actual_image interactive
+    local image actual_image
+    local interactive=()
 
     while [[ $# -ge 1 ]]; do
         case "$1" in
             -i | --interactive | --gui)
-                interactive="--interactive"
+                interactive=( "--interactive" )
                 shift
                 ;;
             --)
@@ -232,10 +233,11 @@ function fari_run() {
     : "${image:=$PHARO_PROJECT}"
 
     if actual_image=$(silently ls "$image".*.image) && [ -e "$actual_image" ]; then
-        ${PHARO} "${actual_image}" "$interactive" "$@"
+        info "${PHARO} ${actual_image} ${interactive[@]} $@"
+        ${PHARO} "${actual_image}" "${interactive[@]}" "$@"
     else
         info "No such image: ${image}, building it first..."
-        fari_build "${image}" && fari_run "$interactive" "${image}" "$@"
+        fari_build "${image}" && fari_run "${interactive[@]}" "${image}" "$@"
     fi
 }
 
