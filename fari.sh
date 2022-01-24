@@ -348,7 +348,7 @@ function die() {
 # Download a `url` to the given file. A convenience wrapper around `curl` or
 # `wget`.
 function download_to() {
-    [[ $# -eq 2 ]] || "Usage: ${FUNCNAME[0]} filename url"
+    [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} filename url"
     local dest="$1" url="$2"
 
     curl --silent --location --compressed --output "$dest" "$url" #TODO the same with wget
